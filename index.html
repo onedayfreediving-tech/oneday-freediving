@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>潛水預約行事曆 | DIVE BOOKING CALENDAR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --navy-deep:#071627;
+    --navy:#0b2036;
+    --navy-panel:#10283f;
+    --navy-line:#1d3c5c;
+    --khaki:#c9a876;
+    --khaki-dark:#a9875a;
+    --khaki-soft:#e4d3ad;
+    --cream:#f4ecd9;
+    --muted:#8fa3ba;
+    --full-grey:#4a5563;
+    --danger:#c96f5a;
+    --radius:14px;
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #123152 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #0f2740 0%, transparent 55%),
+      var(--navy-deep);
+    color:var(--cream);
+    font-family:'Noto Sans TC', system-ui, -apple-system, sans-serif;
+    min-height:100vh;
+    padding:24px 16px 60px;
+  }
+  .pixel{
+    font-family:'Press Start 2P', monospace;
+    letter-spacing:0.5px;
+  }
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+  }
+  header.top{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  header.top .eyebrow{
+    display:inline-block;
+    font-size:10px;
+    color:var(--navy-deep);
+    background:var(--khaki);
+    padding:6px 12px;
+    border-radius:999px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  header.top h1{
+    margin:0 0 6px;
+    font-size:26px;
+    font-weight:900;
+    color:var(--cream);
+  }
+  header.top p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .panel{
+    background:linear-gradient(180deg, var(--navy-panel), var(--navy));
+    border:1px solid var(--navy-line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+
+  .month-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:16px;
+    gap:10px;
+  }
+  .month-nav .month-label{
+    font-size:18px;
+    font-weight:700;
+    color:var(--khaki-soft);
+    text-align:center;
+    min-width:140px;
+  }
+  .nav-btn{
+    background:var(--navy-line);
+    color:var(--cream);
+    border:1px solid var(--khaki-dark);
+    border-radius:10px;
+    width:42px;
+    height:42px;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:background .15s, transform .1s;
+  }
+  .nav-btn:hover:not(:disabled){background:var(--khaki-dark); color:var(--navy-deep);}
+  .nav-btn:active:not(:disabled){transform:scale(.94);}
+  .nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+
+  .weekday-row{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .weekday-row span{
+    text-align:center;
+    font-size:10px;
+    color:var(--khaki);
+    padding-bottom:4px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+  }
+  .day-cell{
+    background:rgba(255,255,255,0.02);
+    border:1px solid var(--navy-line);
+    border-radius:10px;
+    min-height:96px;
+    padding:6px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .day-cell.blank{
+    background:transparent;
+    border:none;
+  }
+  .day-cell.today{
+    border-color:var(--khaki);
+    box-shadow:0 0 0 1px var(--khaki) inset;
+  }
+  .day-num{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .day-cell.today .day-num{color:var(--khaki-soft); font-weight:700;}
+  .day-pills{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    overflow-y:auto;
+    max-height:280px;
+    scrollbar-width:thin;
+    scrollbar-color:var(--khaki-dark) transparent;
+  }
+  .day-pills::-webkit-scrollbar{width:5px;}
+  .day-pills::-webkit-scrollbar-thumb{background:var(--khaki-dark); border-radius:3px;}
+
+  .pill{
+    background:var(--navy-panel);
+    border:1px solid var(--navy-line);
+    border-radius:8px;
+    padding:5px 6px;
+    font-size:11px;
+    line-height:1.4;
+  }
+  .pill.full{
+    opacity:.55;
+  }
+  .pill-period{
+    color:var(--khaki-soft);
+    font-weight:700;
+    font-size:11px;
+  }
+  .pill-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:3px;
+    margin:3px 0;
+  }
+  .tag{
+    background:rgba(201,168,118,0.15);
+    color:var(--khaki-soft);
+    border-radius:5px;
+    padding:1px 5px;
+    font-size:9.5px;
+  }
+  .pill-status{
+    font-size:10px;
+    color:var(--muted);
+    margin-bottom:3px;
+  }
+  .pill:not(.full) .pill-status{color:#8fd0a6;}
+  .pill.full .pill-status{color:var(--full-grey); text-decoration:line-through;}
+  .btn-book{
+    display:block;
+    text-align:center;
+    background:var(--khaki);
+    color:var(--navy-deep);
+    text-decoration:none;
+    font-weight:700;
+    font-size:11px;
+    border-radius:6px;
+    padding:5px 0;
+    transition:background .15s;
+  }
+  .btn-book:hover{background:var(--khaki-soft);}
+
+  /* agenda (mobile list) mode */
+  .agenda{display:none;}
+  .agenda-day{
+    border:1px solid var(--navy-line);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:10px;
+    background:rgba(255,255,255,0.02);
+  }
+  .agenda-day.today{border-color:var(--khaki);}
+  .agenda-day-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .agenda-day-head .date-big{
+    font-size:15px;
+    font-weight:900;
+    color:var(--khaki-soft);
+  }
+  .agenda-day-head .date-sub{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .agenda .pill{font-size:13px; padding:8px 10px;}
+  .agenda .pill-period{font-size:13px;}
+  .agenda .tag{font-size:11px; padding:2px 7px;}
+  .agenda .btn-book{font-size:13px; padding:9px 0; margin-top:4px;}
+
+  .empty-month{
+    text-align:center;
+    color:var(--muted);
+    padding:40px 10px;
+    font-size:13px;
+  }
+
+  .status-banner{
+    text-align:center;
+    padding:14px;
+    border-radius:10px;
+    font-size:13px;
+    margin-bottom:16px;
+  }
+  .status-banner.loading{background:rgba(201,168,118,0.12); color:var(--khaki-soft);}
+  .status-banner.error{background:rgba(201,111,90,0.15); color:#e3a493;}
+  .status-banner button{
+    margin-left:10px;
+    background:var(--khaki);
+    border:none;
+    color:var(--navy-deep);
+    font-weight:700;
+    padding:5px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:12px;
+  }
+
+  footer.foot{
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    margin-top:22px;
+  }
+
+  @media (max-width:700px){
+    body{padding:16px 10px 50px;}
+    header.top h1{font-size:21px;}
+    .grid, .weekday-row{display:none;}
+    .agenda{display:block;}
+    .month-nav .month-label{font-size:16px; min-width:110px;}
+    .nav-btn{width:38px; height:38px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow pixel">DIVE BOOKING CALENDAR</span>
+    <h1>潛水預約行事曆</h1>
+    <p>即時查看剩餘名額，點擊「預約」立即報名 · 資料每 2 分鐘自動更新</p>
+  </header>
+
+  <div id="statusArea"></div>
+
+  <div class="panel">
+    <div class="month-nav">
+      <button class="nav-btn pixel" id="prevBtn" aria-label="上個月">‹</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button class="nav-btn pixel" id="nextBtn" aria-label="下個月">›</button>
+    </div>
+
+    <div class="weekday-row pixel">
+      <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+    </div>
+    <div class="grid" id="grid"></div>
+
+    <div class="agenda" id="agenda"></div>
+  </div>
+
+  <footer class="foot">
+    資料來源：Google 試算表（自動同步） · 若名額顯示有誤，請聯繫店家確認
+  </footer>
+</div>
+
+<script>
+/* ========================================================
+   基本設定 —— 你只需要修改這兩個地方
+   ======================================================== */
+const CONFIG = {
+  // 你的 Google 試算表「發布到網路」CSV 網址
+  CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRYm5lcaClrK2ip1GbQgpdQ-MH_EJ8e1yFpGMEIhpNPF4ysR2mkXZ0OpR0peoNXBmBNfqBYHG5maBKT/pub?gid=0&single=true&output=csv",
+
+  // 學生點擊「預約」後要跳轉的連結（目前是你的 LINE 官方帳號連結）
+  FORM_URL: "https://lin.ee/BbKIko1",
+
+  // 自動重新整理間隔（毫秒）
+  REFRESH_MS: 120000,
+
+  // 手機版切換成清單模式的螢幕寬度門檻
+  MOBILE_BREAKPOINT: 700
+};
+
+/* 欄位中英對照（請勿更動英文 key，需與試算表標題完全一致） */
+const COURSE_COLUMNS = [
+  { key: "Fun Dive",   label: "導潛" },
+  { key: "Training",   label: "訓練" },
+  { key: "Coaching",   label: "團練" },
+  { key: "Dolphin",    label: "體驗課" },
+  { key: "A2 Course",  label: "初階" },
+  { key: "A3 Course",  label: "進階" },
+  { key: "A4 Course",  label: "高階" }
+];
+
+const WEEKDAY_ZH = ["日","一","二","三","四","五","六"];
+
+/* ========================================================
+   狀態
+   ======================================================== */
+let allSessions = [];        // 解析後的所有場次
+let sessionsByDate = new Map(); // dateKey -> [session, ...]
+const today = stripTime(new Date());
+let viewYear = today.getFullYear();
+let viewMonth = today.getMonth(); // 0-indexed
+
+const gridEl = document.getElementById("grid");
+const agendaEl = document.getElementById("agenda");
+const monthLabelEl = document.getElementById("monthLabel");
+const statusArea = document.getElementById("statusArea");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+prevBtn.addEventListener("click", () => { changeMonth(-1); });
+nextBtn.addEventListener("click", () => { changeMonth(1); });
+window.addEventListener("resize", debounce(render, 150));
+
+loadData();
+setInterval(loadData, CONFIG.REFRESH_MS);
+
+/* ========================================================
+   資料載入與解析
+   ======================================================== */
+function loadData(){
+  showStatus("loading", "資料讀取中，正在跟 Google 試算表平壓中…");
+  const bustUrl = CONFIG.CSV_URL + (CONFIG.CSV_URL.includes("?") ? "&" : "?") + "_t=" + Date.now();
+
+  Papa.parse(bustUrl, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results){
+      try{
+        allSessions = buildSessions(results.data);
+        sessionsByDate = groupByDate(allSessions);
+        clearStatus();
+        render();
+      }catch(err){
+        console.error(err);
+        showStatus("error", "資料格式解析失敗，請確認試算表欄位名稱是否與設定相符。", true);
+      }
+    },
+    error: function(err){
+      console.error(err);
+      showStatus("error", "讀取試算表失敗，請檢查網址是否已「發布到網路」，或確認網路連線。", true);
+    }
+  });
+}
+
+function buildSessions(rows){
+  const list = [];
+  rows.forEach(row => {
+    const date = parseDateFlexible(row["Time Slot"]);
+    if(!date) return; // 沒有有效日期的列直接跳過
+
+    const capacity = toInt(row["Capacity"]);
+    const availInfo = parseAvailable(row["Available"]);
+    const period = (row["Period"] || "").toString().trim();
+
+    const tags = COURSE_COLUMNS
+      .filter(c => isFilled(row[c.key]))
+      .map(c => c.label);
+
+    list.push({
+      date: date,
+      dateKey: formatDateKey(date),
+      period: period,
+      capacity: capacity,
+      available: availInfo.value,       // 有填數字時才有值，空白時為 null
+      availableBlank: availInfo.isBlank, // Available 欄位是否留空（視為可預約，不顯示名額數）
+      isFull: !availInfo.isBlank && availInfo.value <= 0,
+      tags: tags
+    });
+  });
+  return list;
+}
+
+function groupByDate(sessions){
+  const map = new Map();
+  sessions.forEach(s => {
+    if(s.date < today) return; // 隱藏過去場次
+    if(!map.has(s.dateKey)) map.set(s.dateKey, []);
+    map.get(s.dateKey).push(s);
+  });
+  // 每天內依 Period 文字排序，讓顯示順序穩定
+  map.forEach(arr => arr.sort((a,b) => a.period.localeCompare(b.period, "zh-Hant")));
+  return map;
+}
+
+function isFilled(v){
+  if(v === undefined || v === null) return false;
+  const s = v.toString().trim();
+  if(s === "") return false;
+  if(s === "0") return false;
+  if(s.toUpperCase() === "FALSE") return false;
+  return true;
+}
+
+function toInt(v){
+  const n = parseInt((v||"").toString().replace(/[^\d-]/g,""), 10);
+  return isNaN(n) ? 0 : n;
+}
+
+/* Available 欄位解析：留空 = 可預約（不顯示確切名額），有填數字 = 依數字判斷已滿/尚有名額 */
+function parseAvailable(v){
+  if(v === undefined || v === null) return { isBlank: true, value: null };
+  const s = v.toString().trim();
+  if(s === "") return { isBlank: true, value: null };
+  return { isBlank: false, value: toInt(s) };
+}
+
+/* 容錯日期解析：支援 2026-07-15 / 2026/7/15 / 07/15/2026 等常見格式 */
+function parseDateFlexible(raw){
+  if(!raw) return null;
+  const str = raw.toString().trim();
+  if(!str) return null;
+
+  let m = str.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  if(m) return stripTime(new Date(+m[1], +m[2]-1, +m[3]));
+
+  m = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+  if(m) return stripTime(new Date(+m[3], +m[1]-1, +m[2]));
+
+  const d = new Date(str);
+  if(!isNaN(d.getTime())) return stripTime(d);
+
+  return null;
+}
+
+function stripTime(d){
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function formatDateKey(d){
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+/* ========================================================
+   渲染
+   ======================================================== */
+function changeMonth(delta){
+  viewMonth += delta;
+  if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+  if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+  render();
+}
+
+function render(){
+  monthLabelEl.textContent = viewYear + "年 " + (viewMonth+1) + "月";
+
+  const isCurrentOrPastMonth = (viewYear < today.getFullYear()) ||
+    (viewYear === today.getFullYear() && viewMonth <= today.getMonth());
+  prevBtn.disabled = isCurrentOrPastMonth;
+
+  const isMobile = window.innerWidth <= CONFIG.MOBILE_BREAKPOINT;
+  if(isMobile){
+    renderAgenda();
+  }else{
+    renderGrid();
+  }
+}
+
+function renderGrid(){
+  gridEl.innerHTML = "";
+  const firstDay = new Date(viewYear, viewMonth, 1);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+
+  for(let i=0;i<startWeekday;i++){
+    const blank = document.createElement("div");
+    blank.className = "day-cell blank";
+    gridEl.appendChild(blank);
+  }
+
+  for(let day=1; day<=daysInMonth; day++){
+    const cellDate = new Date(viewYear, viewMonth, day);
+    const key = formatDateKey(cellDate);
+    const isToday = key === formatDateKey(today);
+    const isPast = cellDate < today;
+
+    const cell = document.createElement("div");
+    cell.className = "day-cell" + (isToday ? " today" : "");
+
+    const num = document.createElement("div");
+    num.className = "day-num pixel";
+    num.textContent = String(day).padStart(2,"0");
+    cell.appendChild(num);
+
+    if(!isPast){
+      const sessions = sessionsByDate.get(key) || [];
+      if(sessions.length){
+        const pillsWrap = document.createElement("div");
+        pillsWrap.className = "day-pills";
+        sessions.forEach(s => pillsWrap.appendChild(pillNode(s)));
+        cell.appendChild(pillsWrap);
+      }
+    }
+
+    gridEl.appendChild(cell);
+  }
+}
+
+function renderAgenda(){
+  agendaEl.innerHTML = "";
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  let hasAny = false;
+
+  for(let day=1; day<=daysInMonth; day++){
+    const cellDate = new Date(viewYear, viewMonth, day);
+    if(cellDate < today) continue;
+    const key = formatDateKey(cellDate);
+    const sessions = sessionsByDate.get(key) || [];
+    if(!sessions.length) continue;
+
+    hasAny = true;
+    const isToday = key === formatDateKey(today);
+
+    const dayBlock = document.createElement("div");
+    dayBlock.className = "agenda-day" + (isToday ? " today" : "");
+
+    const head = document.createElement("div");
+    head.className = "agenda-day-head";
+    head.innerHTML =
+      '<span class="date-big">' + (viewMonth+1) + '/' + day + '</span>' +
+      '<span class="date-sub">星期' + WEEKDAY_ZH[cellDate.getDay()] + (isToday ? "・今天" : "") + '</span>';
+    dayBlock.appendChild(head);
+
+    sessions.forEach(s => dayBlock.appendChild(pillNode(s)));
+    agendaEl.appendChild(dayBlock);
+  }
+
+  if(!hasAny){
+    const empty = document.createElement("div");
+    empty.className = "empty-month";
+    empty.textContent = "這個月目前沒有開放的場次，換下個月看看吧！";
+    agendaEl.appendChild(empty);
+  }
+}
+
+function pillNode(s){
+  const full = s.isFull;
+  const pill = document.createElement("div");
+  pill.className = "pill" + (full ? " full" : "");
+
+  const period = document.createElement("div");
+  period.className = "pill-period";
+  period.textContent = s.period || "場次";
+  pill.appendChild(period);
+
+  if(s.tags.length){
+    const tagsWrap = document.createElement("div");
+    tagsWrap.className = "pill-tags";
+    s.tags.forEach(t => {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = t;
+      tagsWrap.appendChild(tag);
+    });
+    pill.appendChild(tagsWrap);
+  }
+
+  const status = document.createElement("div");
+  status.className = "pill-status pixel";
+  status.textContent = full
+    ? "FULL 已滿額"
+    : (s.availableBlank ? "OPEN 可預約" : ("餘 " + s.available + " 名"));
+  pill.appendChild(status);
+
+  if(!full){
+    const btn = document.createElement("a");
+    btn.className = "btn-book";
+    btn.href = CONFIG.FORM_URL;
+    btn.target = "_blank";
+    btn.rel = "noopener";
+    btn.textContent = "預約";
+    pill.appendChild(btn);
+  }
+
+  return pill;
+}
+
+/* ========================================================
+   狀態列 & 小工具
+   ======================================================== */
+function showStatus(type, message, withRetry){
+  statusArea.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "status-banner " + type;
+  div.textContent = message;
+  if(withRetry){
+    const btn = document.createElement("button");
+    btn.textContent = "重新讀取";
+    btn.onclick = loadData;
+    div.appendChild(btn);
+  }
+  statusArea.appendChild(div);
+}
+
+function clearStatus(){
+  statusArea.innerHTML = "";
+}
+
+function debounce(fn, wait){
+  let t;
+  return function(){
+    clearTimeout(t);
+    t = setTimeout(fn, wait);
+  };
+}
+</script>
+</body>
+</html>
