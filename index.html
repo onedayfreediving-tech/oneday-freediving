@@ -420,7 +420,6 @@
                 
                 let lastValidDate = null;
 
-                // 尋找「地點」與「剩餘名額」的精準欄位索引
                 const locIndex = headers.findIndex(h => h && (h.toLowerCase().includes('loc') || h.includes('地點')));
                 let availableIndex = headers.findIndex(h => h && (h.includes('Available') || h.includes('剩餘')));
                 if (availableIndex === -1) availableIndex = headers.length - 1;
@@ -447,16 +446,14 @@
 
                     if (!dateStr) return null;
                     
-                    // 取得獨立地點欄位值
                     let specificLocation = '';
                     if (locIndex !== -1 && cells[locIndex] && cells[locIndex].v) {
                         specificLocation = String(cells[locIndex].v).trim();
                     }
 
-                    // 智慧偵測：若地點欄位包含「潛旅、旅遊、出國」，即使右側項目都是空的，也自動把項目設定為「潛水旅遊」
+                    // 智慧判定是否為潛旅
                     const isTrip = specificLocation.includes('旅遊') || specificLocation.includes('潛旅') || specificLocation.includes('出國');
 
-                    // 掃描課程名稱項目
                     let project = '';
                     const scanStartIndex = locIndex !== -1 ? locIndex + 2 : 5;
 
@@ -472,17 +469,15 @@
                         }
                     }
 
-                    // 如果右側全部空白，但是是潛旅，強制賦予項目名稱，避免這筆行程被過濾
                     if (!project && isTrip) {
                         project = '潛水旅遊';
                     }
 
-                    // 如果既沒有課程項目，也不是潛旅，且沒有時間設定，才過濾掉
                     if (!project && !timeStr) return null;
 
                     return {
                         date: dateStr,
-                        time: timeStr || '全天', // 允許全天無特定時間設定
+                        time: timeStr || '全天',
                         period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
                         capacity: cells[3] ? (cells[3].v || 0) : 0,
                         project: project || '潛水活動',
@@ -500,17 +495,20 @@
             }
         }
 
-        // 地點與特殊行程專屬渲染
+        // 動態解析地點與特殊行程
         function getProjectTitleHTML(projectName, rowLocation) {
             if (!projectName) return '潛水行程';
             
-            const locationToUse = (rowLocation || projectName).trim();
+            const locationToUse = (rowLocation || '').trim();
 
+            // 1. 如果「地點」欄位裡包含旅遊、潛旅、出國等關鍵字
             if (locationToUse.includes('旅遊') || locationToUse.includes('潛旅') || locationToUse.includes('出國')) {
+                // 直接將您在試算表地點寫的文字（例如：綠島潛旅）整串動態放進標籤中！
                 let cleanedName = projectName.replace('潛水旅遊', '').replace('潛旅', '').replace('旅遊', '').replace('出國', '').trim();
-                return `<span class="loc-tag special-trip">✈️ 潛旅</span>${cleanedName || '行程'}`;
+                return `<span class="loc-tag special-trip">✈️ ${locationToUse}</span>${cleanedName || '行程'}`;
             }
 
+            // 2. 正常行程解析
             if (locationToUse.includes('台中')) {
                 const cleanedName = projectName.replace('台中', '').trim();
                 return `<span class="loc-tag taichung">台中</span>${cleanedName || '行程'}`;
@@ -525,6 +523,12 @@
                 const cleanedName = projectName.replace('小琉球', '').replace('琉球', '').trim();
                 return `<span class="loc-tag liuqiu">琉球</span>${cleanedName || '行程'}`;
             }
+            
+            // 降級防呆：若地點沒寫，但專案名稱含有特定地點
+            const projectToSearch = projectName.trim();
+            if (projectToSearch.includes('台中')) return `<span class="loc-tag taichung">台中</span>${projectToSearch.replace('台中', '')}`;
+            if (projectToSearch.includes('恆春')) return `<span class="loc-tag hengchun">恆春</span>${projectToSearch.replace('恆春', '')}`;
+            if (projectToSearch.includes('琉球')) return `<span class="loc-tag liuqiu">琉球</span>${projectToSearch.replace('小琉球', '').replace('琉球', '')}`;
             
             return projectName;
         }
@@ -557,7 +561,6 @@
                     const projectHTML = getProjectTitleHTML(slot.project, slot.location);
                     const isFull = slot.available <= 0;
                     
-                    // 時間格式修飾
                     let displayTime = '';
                     if (slot.time && slot.time !== '全天') {
                         displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
