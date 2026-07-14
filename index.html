@@ -242,15 +242,15 @@
 
     <script>
         const SPREADSHEET_ID = '1airsLt1cE5XAoneMjfdQCGsOPcjxZ_ZZ-1rDU3EWtbg';
-        const SHEET_NAME = '7月';
-        // 統一對接到 LINE 官方帳號
         const BOOKING_LINE_URL = 'https://lin.ee/BbKIko1';
 
-        let currentDate = new Date(2026, 6, 1); 
+        let currentDate = new Date(2026, 6, 1); // 預設 2026 年 7 月
         let sheetData = [];
 
         async function fetchGoogleSheet() {
-            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+            // 自動根據當前日曆顯示的月份，去抓取對應名稱的分頁（例如：7月、8月）
+            const sheetMonthName = `${currentDate.getMonth() + 1}月`;
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetMonthName)}`;
             
             try {
                 const response = await fetch(url);
@@ -288,7 +288,7 @@
                 renderCalendar();
             } catch (error) {
                 console.error("讀取試算表失敗:", error);
-                document.getElementById('loading').innerText = "暫時無法載入預約資料，請檢查網路連線。";
+                document.getElementById('loading').innerText = `暫時無法載入 ${sheetMonthName} 的預約資料，請確認您的試算表中是否有建立名為「${sheetMonthName}」的分頁喔！`;
             }
         }
 
@@ -343,7 +343,6 @@
             const slotsContainer = document.createElement('div');
             slotsContainer.className = 'slots-container';
 
-            // 篩選出該日期在試算表中的資料
             const matchedSlots = sheetData.filter(item => {
                 const itemDateObj = new Date(item.date);
                 return itemDateObj.getFullYear() === year && 
@@ -352,7 +351,6 @@
             });
 
             if (matchedSlots.length > 0) {
-                // 情境一：有排課項目
                 matchedSlots.forEach(slot => {
                     const badge = document.createElement('a');
                     badge.className = 'slot-badge';
@@ -369,7 +367,6 @@
                     slotsContainer.appendChild(badge);
                 });
             } else if (!isOtherMonth) {
-                // 情境二：非排課的空白日期，顯示「可預約」並支援點擊跳轉官方帳號
                 const emptyBadge = document.createElement('a');
                 emptyBadge.className = 'slot-badge empty-clickable';
                 emptyBadge.href = BOOKING_LINE_URL;
@@ -384,7 +381,13 @@
 
         function changeMonth(direction) {
             currentDate.setMonth(currentDate.getMonth() + direction);
-            renderCalendar();
+            
+            // 切換月份時，先秀出 Loading 並重新抓取該月份分頁的資料
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerText = "正在載入教練行程與預約名額...";
+            document.getElementById('daysGrid').style.display = 'none';
+            
+            fetchGoogleSheet();
         }
 
         window.onload = fetchGoogleSheet;
