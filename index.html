@@ -13,6 +13,7 @@
             --border-color: #233554;
             --disabled-color: #1e293b;
             --success-color: #10b981;
+            --link-color: #38bdf8;
         }
 
         body {
@@ -46,7 +47,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 900px;
+            max-width: 950px;
             padding: 20px;
             box-sizing: border-box;
         }
@@ -99,7 +100,7 @@
         .day-cell {
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            min-height: 100px;
+            min-height: 110px;
             padding: 8px;
             display: flex;
             flex-direction: column;
@@ -128,7 +129,7 @@
         }
 
         .slots-container {
-            margin-top: 8px;
+            margin-top: 6px;
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -144,8 +145,8 @@
             padding: 4px;
             font-size: 11px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 2px;
             cursor: pointer;
             transition: all 0.2s;
             text-decoration: none;
@@ -165,6 +166,38 @@
             pointer-events: none;
         }
 
+        .slot-badge.empty-clickable {
+            background-color: rgba(56, 189, 248, 0.05);
+            border: 1px dashed rgba(56, 189, 248, 0.4);
+            color: var(--link-color);
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .slot-badge.empty-clickable:hover {
+            background-color: var(--link-color);
+            color: var(--bg-color);
+            border-color: var(--link-color);
+        }
+
+        .slot-meta {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .slot-title {
+            font-weight: bold;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .loading-text {
             text-align: center;
             color: var(--primary-color);
@@ -172,28 +205,19 @@
             font-size: 16px;
         }
 
-        @media (max-width: 640px) {
-            body {
-                padding: 10px;
-            }
-            .day-cell {
-                min-height: 75px;
-                padding: 4px;
-            }
-            .day-number {
-                font-size: 11px;
-            }
-            .slot-badge {
-                font-size: 9px;
-                padding: 2px;
-            }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .day-cell { min-height: 85px; padding: 4px; }
+            .day-number { font-size: 11px; }
+            .slot-badge { font-size: 9px; padding: 2px; }
+            .slot-meta { font-size: 8px; }
         }
     </style>
 </head>
 <body>
 
     <h1>潛水預約行事曆</h1>
-    <div class="subtitle">即時查看剩餘名額，點擊「預約」立即報名 · 資料自動同步更新</div>
+    <div class="subtitle">即時查看排班與剩餘名額，點擊即可直接導向 LINE 官方帳號進行預約</div>
 
     <div class="calendar-container">
         <div class="calendar-header">
@@ -217,57 +241,65 @@
     </div>
 
     <script>
-        // 設定試算表對接參數
         const SPREADSHEET_ID = '1airsLt1cE5XAoneMjfdQCGsOPcjxZ_ZZ-1rDU3EWtbg';
         const SHEET_NAME = '7月';
-        
-        // 你的 Google 預約表單連結（點擊時段會跳轉到此連結）
-        const BOOKING_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfD_K9M_Tid3U_9klyXzD6P8-wU7N6U8_8w9u_vI3HhY_zTqA/viewform'; // 若有指定表單網址可替換
+        // 統一對接到 LINE 官方帳號
+        const BOOKING_LINE_URL = 'https://lin.ee/BbKIko1';
 
-        let currentDate = new Date(2026, 6, 1); // 預設為 2026年 7月
+        let currentDate = new Date(2026, 6, 1); 
         let sheetData = [];
 
-        // 使用 Google Visualization API (gvix) 防止 CORS 的非同步讀取
         async function fetchGoogleSheet() {
             const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
             
             try {
                 const response = await fetch(url);
                 const text = await response.text();
-                // 移除 Google 返回的 JSONP 包裝字串
                 const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
                 const data = JSON.parse(jsonString);
                 
                 const rows = data.table.rows;
+                const headers = data.table.cols.map(col => col.label || '');
+                
                 sheetData = rows.map(row => {
                     const cells = row.c;
+                    if (!cells || !cells[0] || !cells[1]) return null;
+                    
+                    let project = '';
+                    for (let i = 4; i <= 10; i++) {
+                        if (cells[i] && cells[i].v !== null && cells[i].v !== '') {
+                            project = headers[i] || '潛水行程';
+                            break;
+                        }
+                    }
+
                     return {
-                        date: cells[0] ? parseGoogleDate(cells[0].v) : '',
+                        date: parseGoogleDate(cells[0].v),
                         time: cells[1] ? cells[1].v : '',
                         period: cells[2] ? cells[2].v : '',
                         capacity: cells[3] ? cells[3].v : 0,
+                        project: project,
                         available: cells[11] ? cells[11].v : 0
                     };
-                }).filter(item => item.date); // 過濾掉空行
+                }).filter(item => item && item.date && item.time !== '');
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('daysGrid').style.display = 'grid';
                 renderCalendar();
             } catch (error) {
                 console.error("讀取試算表失敗:", error);
-                document.getElementById('loading').innerText = "暫時無法載入預約資料，請檢查試算表共用設定（是否已開啟「知道連結的任何人」皆可檢視）。";
+                document.getElementById('loading').innerText = "暫時無法載入預約資料，請檢查網路連線。";
             }
         }
 
         function parseGoogleDate(dateStr) {
             if (typeof dateStr === 'string' && dateStr.startsWith('Date')) {
-                // 格式為 Date(2026, 6, 14)
                 const parts = dateStr.match(/\d+/g);
                 if (parts) {
                     return `${parts[0]}/${String(parseInt(parts[1]) + 1).padStart(2, '0')}/${parts[2].padStart(2, '0')}`;
                 }
             }
-            return dateStr; // 如果是普通字串直接回傳
+            return dateStr;
         }
 
         function renderCalendar() {
@@ -283,20 +315,16 @@
             const grid = document.getElementById('daysGrid');
             grid.innerHTML = '';
 
-            // 渲染上個月的尾巴
             for (let i = firstDayIndex; i > 0; i--) {
-                const dayNum = prevLastDay - i + 1;
-                grid.appendChild(createDayCell(year, month - 1, dayNum, true));
+                grid.appendChild(createDayCell(year, month - 1, prevLastDay - i + 1, true));
             }
 
-            // 渲染本月的日期
             const today = new Date();
             for (let i = 1; i <= lastDay; i++) {
                 const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
                 grid.appendChild(createDayCell(year, month, i, false, isToday));
             }
 
-            // 補齊下個月的開頭
             const totalCells = firstDayIndex + lastDay;
             const remaining = 42 - totalCells;
             for (let i = 1; i <= remaining; i++) {
@@ -310,37 +338,45 @@
             if (isOtherMonth) cell.classList.add('other-month');
             if (isToday) cell.classList.add('today');
 
-            const formattedDayNum = String(day).padStart(2, '0');
-            cell.innerHTML = `<div class="day-number">${formattedDayNum}</div>`;
+            cell.innerHTML = `<div class="day-number">${String(day).padStart(2, '0')}</div>`;
 
             const slotsContainer = document.createElement('div');
             slotsContainer.className = 'slots-container';
 
-            // 篩選出符合此日期的試算表預約時段
-            const targetDateStr = `${year}/${String(month + 1).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
+            // 篩選出該日期在試算表中的資料
             const matchedSlots = sheetData.filter(item => {
-                // 相容 2026/07/14 與 2026/7/14 兩種日期比對格式
                 const itemDateObj = new Date(item.date);
                 return itemDateObj.getFullYear() === year && 
                        itemDateObj.getMonth() === month && 
                        itemDateObj.getDate() === day;
             });
 
-            matchedSlots.forEach(slot => {
-                const badge = document.createElement('a');
-                badge.className = 'slot-badge';
-                
-                const isFull = slot.available <= 0;
-                if (isFull) {
-                    badge.classList.add('full');
-                    badge.innerHTML = `<span>${slot.period} ${slot.time}點</span><span>額滿</span>`;
-                } else {
-                    badge.href = BOOKING_FORM_URL;
+            if (matchedSlots.length > 0) {
+                // 情境一：有排課項目
+                matchedSlots.forEach(slot => {
+                    const badge = document.createElement('a');
+                    badge.className = 'slot-badge';
+                    badge.href = BOOKING_LINE_URL;
                     badge.target = '_blank';
-                    badge.innerHTML = `<span>${slot.period} ${slot.time}點</span><span>餘 ${slot.available}</span>`;
-                }
-                slotsContainer.appendChild(badge);
-            });
+                    
+                    const isFull = slot.available <= 0;
+                    if (isFull) {
+                        badge.classList.add('full');
+                        badge.innerHTML = `<div class="slot-title">${slot.project || '潛水行程'}</div><div class="slot-meta"><span>${slot.period}${slot.time}點</span><span>額滿</span></div>`;
+                    } else {
+                        badge.innerHTML = `<div class="slot-title">${slot.project || '潛水行程'} (餘 ${slot.available}人)</div><div class="slot-meta"><span>${slot.period}${slot.time}點</span><span style="color:var(--primary-color)">點擊預約</span></div>`;
+                    }
+                    slotsContainer.appendChild(badge);
+                });
+            } else if (!isOtherMonth) {
+                // 情境二：非排課的空白日期，顯示「可預約」並支援點擊跳轉官方帳號
+                const emptyBadge = document.createElement('a');
+                emptyBadge.className = 'slot-badge empty-clickable';
+                emptyBadge.href = BOOKING_LINE_URL;
+                emptyBadge.target = '_blank';
+                emptyBadge.innerText = '可預約';
+                slotsContainer.appendChild(emptyBadge);
+            }
 
             cell.appendChild(slotsContainer);
             return cell;
@@ -351,7 +387,6 @@
             renderCalendar();
         }
 
-        // 頁面開啟時載入
         window.onload = fetchGoogleSheet;
     </script>
 </body>
