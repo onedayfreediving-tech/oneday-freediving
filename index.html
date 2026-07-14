@@ -420,7 +420,7 @@
                 
                 let lastValidDate = null;
 
-                // 智慧尋找「地點」與「剩餘名額」欄位
+                // 尋找「地點」與「剩餘名額」的精準欄位索引
                 const locIndex = headers.findIndex(h => h && (h.toLowerCase().includes('loc') || h.includes('地點')));
                 let availableIndex = headers.findIndex(h => h && (h.includes('Available') || h.includes('剩餘')));
                 if (availableIndex === -1) availableIndex = headers.length - 1;
@@ -447,16 +447,15 @@
 
                     if (!dateStr || !timeStr) return null;
                     
-                    // 取得獨立地點設定
+                    // 取得獨立地點欄位值
                     let specificLocation = '';
                     if (locIndex !== -1 && cells[locIndex] && cells[locIndex].v) {
                         specificLocation = String(cells[locIndex].v).trim();
                     }
 
-                    // 自動掃描行程名稱
+                    // 掃描課程名稱項目（地點欄位右側第 2 欄起，即跳過地點與總名額，從 F 欄開始掃描）
                     let project = '';
-                    // 行程名稱起始索引：如果有地點欄位，則從其後一格開始掃描，避免誤把地點當項目
-                    const scanStartIndex = locIndex !== -1 ? locIndex + 1 : 4;
+                    const scanStartIndex = locIndex !== -1 ? locIndex + 2 : 5;
 
                     for (let i = scanStartIndex; i < availableIndex; i++) {
                         if (cells[i] && cells[i].v !== null && cells[i].v !== '') {
@@ -476,7 +475,7 @@
                         period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
                         capacity: cells[3] ? (cells[3].v || 0) : 0,
                         project: project,
-                        location: specificLocation, // 存入專屬地點
+                        location: specificLocation,
                         available: cells[availableIndex] ? (cells[availableIndex].v || 0) : 0
                     };
                 }).filter(item => item && item.date && item.time !== '');
@@ -490,11 +489,10 @@
             }
         }
 
-        // 修改後的地點渲染邏輯，支援「獨立欄位地點」與「內文文字地點」雙軌並行
+        // 地點與特殊行程專屬渲染
         function getProjectTitleHTML(projectName, rowLocation) {
             if (!projectName) return '潛水行程';
             
-            // 優先使用專屬 Location 欄位中的設定
             const locationToUse = (rowLocation || projectName).trim();
 
             if (locationToUse.includes('旅遊') || locationToUse.includes('潛旅') || locationToUse.includes('出國')) {
@@ -545,10 +543,8 @@
                     badge.href = BOOKING_LINE_URL;
                     badge.target = '_blank';
                     
-                    // 傳入專屬地點欄位的值進行渲染
                     const projectHTML = getProjectTitleHTML(slot.project, slot.location);
                     const isFull = slot.available <= 0;
-                    
                     const displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
                     
                     if (isFull) {
@@ -595,7 +591,6 @@
             return timeStr;
         }
 
-        // 月曆渲染
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
