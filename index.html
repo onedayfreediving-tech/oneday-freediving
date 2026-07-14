@@ -445,7 +445,7 @@
                         timeStr = cells[1].f ? cells[1].f : parseGoogleTime(cells[1].v);
                     }
 
-                    if (!dateStr || !timeStr) return null;
+                    if (!dateStr) return null;
                     
                     // 取得獨立地點欄位值
                     let specificLocation = '';
@@ -453,7 +453,10 @@
                         specificLocation = String(cells[locIndex].v).trim();
                     }
 
-                    // 掃描課程名稱項目（地點欄位右側第 2 欄起，即跳過地點與總名額，從 F 欄開始掃描）
+                    // 智慧偵測：若地點欄位包含「潛旅、旅遊、出國」，即使右側項目都是空的，也自動把項目設定為「潛水旅遊」
+                    const isTrip = specificLocation.includes('旅遊') || specificLocation.includes('潛旅') || specificLocation.includes('出國');
+
+                    // 掃描課程名稱項目
                     let project = '';
                     const scanStartIndex = locIndex !== -1 ? locIndex + 2 : 5;
 
@@ -469,16 +472,24 @@
                         }
                     }
 
+                    // 如果右側全部空白，但是是潛旅，強制賦予項目名稱，避免這筆行程被過濾
+                    if (!project && isTrip) {
+                        project = '潛水旅遊';
+                    }
+
+                    // 如果既沒有課程項目，也不是潛旅，且沒有時間設定，才過濾掉
+                    if (!project && !timeStr) return null;
+
                     return {
                         date: dateStr,
-                        time: timeStr,
+                        time: timeStr || '全天', // 允許全天無特定時間設定
                         period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
                         capacity: cells[3] ? (cells[3].v || 0) : 0,
-                        project: project,
+                        project: project || '潛水活動',
                         location: specificLocation,
                         available: cells[availableIndex] ? (cells[availableIndex].v || 0) : 0
                     };
-                }).filter(item => item && item.date && item.time !== '');
+                }).filter(item => item && item.date);
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('daysGrid').style.display = 'grid';
@@ -545,13 +556,22 @@
                     
                     const projectHTML = getProjectTitleHTML(slot.project, slot.location);
                     const isFull = slot.available <= 0;
-                    const displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
+                    
+                    // 時間格式修飾
+                    let displayTime = '';
+                    if (slot.time && slot.time !== '全天') {
+                        displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
+                    } else {
+                        displayTime = '全天';
+                    }
+                    
+                    const timeLabel = slot.period ? `${slot.period} ${displayTime}` : displayTime;
                     
                     if (isFull) {
                         badge.classList.add('full');
-                        badge.innerHTML = `<span class="slot-title">${projectHTML}</span><span class="slot-meta"><span>${slot.period} ${displayTime}</span><span>額滿</span></span>`;
+                        badge.innerHTML = `<span class="slot-title">${projectHTML}</span><span class="slot-meta"><span>${timeLabel}</span><span>額滿</span></span>`;
                     } else {
-                        badge.innerHTML = `<span class="slot-title">${projectHTML} (餘 ${slot.available})</span><span class="slot-meta"><span>${slot.period} ${displayTime}</span><span style="color:var(--primary-color)">預約</span></span>`;
+                        badge.innerHTML = `<span class="slot-title">${projectHTML} (餘 ${slot.available})</span><span class="slot-meta"><span>${timeLabel}</span><span style="color:var(--primary-color)">預約</span></span>`;
                     }
                     slotsContainer.appendChild(badge);
                 });
