@@ -420,15 +420,15 @@
                 
                 let lastValidDate = null;
 
-                // 智慧尋找「剩餘名額」欄位的索引，支援未來自由新增課程
+                // 智慧尋找「地點」與「剩餘名額」欄位
+                const locIndex = headers.findIndex(h => h && (h.toLowerCase().includes('loc') || h.includes('地點')));
                 let availableIndex = headers.findIndex(h => h && (h.includes('Available') || h.includes('剩餘')));
-                if (availableIndex === -1) availableIndex = headers.length - 1; // 找不到則預設為最後一欄
+                if (availableIndex === -1) availableIndex = headers.length - 1;
 
                 sheetData = rows.map(row => {
                     const cells = row.c;
                     if (!cells) return null;
                     
-                    // 1. 強制讀取可視文字 (.f 優先) 來取得日期
                     let dateStr = null;
                     if (cells[0]) {
                         dateStr = cells[0].f ? cells[0].f : parseGoogleDate(cells[0].v);
@@ -437,10 +437,9 @@
                     if (dateStr) {
                         lastValidDate = dateStr;
                     } else if (cells[1] && (cells[1].f || cells[1].v !== null)) {
-                        dateStr = lastValidDate; // 若日期空白但有時間，自動帶入上一筆日期
+                        dateStr = lastValidDate;
                     }
 
-                    // 2. 取得時間 (.f 優先，解決 14:00 陣列問題)
                     let timeStr = '';
                     if (cells[1]) {
                         timeStr = cells[1].f ? cells[1].f : parseGoogleTime(cells[1].v);
@@ -448,16 +447,23 @@
 
                     if (!dateStr || !timeStr) return null;
                     
-                    // 3. 自動掃描填寫的課程
+                    // 取得獨立地點設定
+                    let specificLocation = '';
+                    if (locIndex !== -1 && cells[locIndex] && cells[locIndex].v) {
+                        specificLocation = String(cells[locIndex].v).trim();
+                    }
+
+                    // 自動掃描行程名稱
                     let project = '';
-                    for (let i = 4; i < availableIndex; i++) {
+                    // 行程名稱起始索引：如果有地點欄位，則從其後一格開始掃描，避免誤把地點當項目
+                    const scanStartIndex = locIndex !== -1 ? locIndex + 1 : 4;
+
+                    for (let i = scanStartIndex; i < availableIndex; i++) {
                         if (cells[i] && cells[i].v !== null && cells[i].v !== '') {
                             let cellText = cells[i].f ? cells[i].f : String(cells[i].v);
-                            // 若填入純數字(例如人數)或打勾，使用標題名稱
                             if (!isNaN(cellText) || cellText.trim().toLowerCase() === 'v') {
                                 project = headers[i] || '潛水行程';
                             } else {
-                                // 若填寫如「小琉球導潛」，直接使用該文字
                                 project = cellText;
                             }
                             break;
@@ -470,6 +476,7 @@
                         period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
                         capacity: cells[3] ? (cells[3].v || 0) : 0,
                         project: project,
+                        location: specificLocation, // 存入專屬地點
                         available: cells[availableIndex] ? (cells[availableIndex].v || 0) : 0
                     };
                 }).filter(item => item && item.date && item.time !== '');
@@ -483,26 +490,29 @@
             }
         }
 
-        // 地點膠囊標籤邏輯
-        function getProjectTitleHTML(projectName) {
+        // 修改後的地點渲染邏輯，支援「獨立欄位地點」與「內文文字地點」雙軌並行
+        function getProjectTitleHTML(projectName, rowLocation) {
             if (!projectName) return '潛水行程';
             
-            if (projectName.includes('旅遊') || projectName.includes('潛旅') || projectName.includes('出國')) {
+            // 優先使用專屬 Location 欄位中的設定
+            const locationToUse = (rowLocation || projectName).trim();
+
+            if (locationToUse.includes('旅遊') || locationToUse.includes('潛旅') || locationToUse.includes('出國')) {
                 let cleanedName = projectName.replace('潛水旅遊', '').replace('潛旅', '').replace('旅遊', '').replace('出國', '').trim();
                 return `<span class="loc-tag special-trip">✈️ 潛旅</span>${cleanedName || '行程'}`;
             }
 
-            if (projectName.includes('台中')) {
+            if (locationToUse.includes('台中')) {
                 const cleanedName = projectName.replace('台中', '').trim();
                 return `<span class="loc-tag taichung">台中</span>${cleanedName || '行程'}`;
             }
             
-            if (projectName.includes('恆春')) {
+            if (locationToUse.includes('恆春')) {
                 const cleanedName = projectName.replace('恆春', '').trim();
                 return `<span class="loc-tag hengchun">恆春</span>${cleanedName || '行程'}`;
             }
             
-            if (projectName.includes('小琉球') || projectName.includes('琉球')) {
+            if (locationToUse.includes('小琉球') || locationToUse.includes('琉球')) {
                 const cleanedName = projectName.replace('小琉球', '').replace('琉球', '').trim();
                 return `<span class="loc-tag liuqiu">琉球</span>${cleanedName || '行程'}`;
             }
@@ -535,10 +545,10 @@
                     badge.href = BOOKING_LINE_URL;
                     badge.target = '_blank';
                     
-                    const projectHTML = getProjectTitleHTML(slot.project);
+                    // 傳入專屬地點欄位的值進行渲染
+                    const projectHTML = getProjectTitleHTML(slot.project, slot.location);
                     const isFull = slot.available <= 0;
                     
-                    // 優化時間顯示：有冒號(如14:00)就不加「點」，沒冒號(如14)就加「點」
                     const displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
                     
                     if (isFull) {
@@ -585,6 +595,7 @@
             return timeStr;
         }
 
+        // 月曆渲染
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
