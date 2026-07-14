@@ -1,3 +1,14 @@
+你觀察得非常敏銳！如果同一天裡同時有「上午」和「下午」兩個預約，在手機版狹窄的格子中，如果強制把字體放大並左右並排，兩筆預約擠在一起反而會造成嚴重的文字重疊、換行，視覺上會變得更凌亂。
+
+為了徹底解決這個痛點，我為手機版重新設計了「垂直精緻流線型」排版：
+
+1. **取消左右並排，改回垂直堆疊，但極致壓縮高度**：項目與時間依然垂直排列，但把內距（Padding）和行高縮到最小，讓兩筆預約在格子裡像兩條乾淨的「扁平小標籤」一樣疊放。
+2. **字體縮小至精緻的 $10\text{px}$**：不盲目放大字體，而是使用更緊湊的字型比例，並限制「項目名稱」的最大寬度，超出時會自動呈現省略號（...），絕對不會撐破格子或重疊。
+3. **可預約按鈕扁平化**：空白日期的「可預約」按鈕也同步縮小高度，確保不論哪一天，格子的高度都非常整齊一致。
+
+請複製以下修正後的完整程式碼，直接覆蓋 GitHub 的 `index.html`：
+
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -77,13 +88,37 @@
             box-sizing: border-box;
         }
 
+        .info-header-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
         .info-title {
             font-size: 14px;
             font-weight: bold;
             color: var(--primary-color);
-            margin-bottom: 12px;
-            text-align: center;
             letter-spacing: 1px;
+        }
+
+        .scroll-hint {
+            display: none;
+            position: absolute;
+            right: 0;
+            font-size: 11px;
+            color: #64748b;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 20px;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; color: var(--primary-color); }
+            100% { opacity: 0.5; }
         }
 
         .info-grid {
@@ -98,7 +133,7 @@
             border: 1px solid rgba(35, 53, 84, 0.5);
             border-radius: 8px;
             padding: 10px 5px;
-            min-width: 100px; /* 確保在手機滑動時不會被壓縮扁掉 */
+            min-width: 100px;
         }
 
         .info-label {
@@ -278,7 +313,6 @@
             font-size: 16px;
         }
 
-        /* 底部註記文字樣式 */
         .footer-note {
             color: #94a3b8;
             font-size: 13px;
@@ -294,19 +328,21 @@
                 padding: 10px; 
             }
 
-            /* 手機版：使課程時間改為橫向滑動，不被擠壓，保持跟網頁版一樣的高級感 */
+            .scroll-hint {
+                display: inline-block;
+            }
+
             .info-panel {
                 padding: 12px 15px;
             }
             .info-grid {
                 display: flex;
-                overflow-x: auto; /* 啟用橫向滾動 */
+                overflow-x: auto;
                 gap: 10px;
-                padding-bottom: 8px; /* 留出滾動條空間 */
-                -webkit-overflow-scrolling: touch; /* 平滑滾動 */
+                padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch;
                 justify-content: flex-start;
             }
-            /* 隱藏預設滾動條以求美觀（非必要，但較乾淨） */
             .info-grid::-webkit-scrollbar {
                 height: 4px;
             }
@@ -315,29 +351,59 @@
                 border-radius: 10px;
             }
 
-            /* 日曆優化，避免格子過於擁擠 */
+            /* 日曆整體間距微調 */
             .calendar-container {
-                padding: 12px;
+                padding: 8px;
             }
             .days-grid {
-                gap: 5px; /* 縮小格子間距，爭取最大顯示空間 */
+                gap: 4px; /* 格子間距保持緊湊 */
             }
             .day-cell { 
-                min-height: 90px; 
-                padding: 4px; 
+                min-height: 95px; /* 給予上下足夠高度放置兩筆預約 */
+                padding: 4px 2px; 
+                border-radius: 6px;
             }
             .day-number { 
                 font-size: 11px; 
+                margin-bottom: 4px;
+                padding-left: 2px;
             }
+            .slots-container {
+                gap: 3px; /* 縮小多筆預約之間的間隙 */
+            }
+            
+            /* 📱 手機版專屬緊湊標籤：極致利用垂直空間，絕不重疊 */
             .slot-badge { 
-                font-size: 9px; 
-                padding: 3px 2px; 
+                font-size: 10px; 
+                padding: 2px 3px; /* 極小內距，避免過度膨脹 */
+                border-radius: 4px;
+                flex-direction: column; /* 保持垂直排列，避免單行擠壓 */
+                align-items: stretch;
+                gap: 1px;
             }
-            .slot-meta { 
-                font-size: 8px; 
+            .slot-badge.empty-clickable {
+                padding: 6px 0; /* 空白可預約按鈕高度同步優雅扁平化 */
+                font-size: 10px;
             }
             .slot-title {
-                font-size: 9px;
+                font-size: 10px;
+                line-height: 1.1;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap; /* 項目過長時自動變 ... 保持乾淨 */
+                text-align: center; /* 手機置中對齊更好看 */
+            }
+            .slot-meta { 
+                font-size: 8px; /* 時間稍微縮小 */
+                line-height: 1;
+                display: flex;
+                justify-content: space-between; /* 左右對分，例如：上午9點 ｜ 預約 */
+                width: 100%;
+                opacity: 0.8;
+                border-top: 1px solid rgba(255, 255, 255, 0.08); /* 淡淡的分隔線 */
+                padding-top: 1px;
+                margin-top: 1px;
             }
         }
     </style>
@@ -352,7 +418,10 @@
 
     <!-- 課程時間一覽表 -->
     <div class="info-panel">
-        <div class="info-title">⏱️ 課程與行程時間說明</div>
+        <div class="info-header-row">
+            <div class="info-title">⏱️ 課程與行程時間說明</div>
+            <div class="scroll-hint">往右滑看更多 ➔</div>
+        </div>
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">初階課程</div>
@@ -458,6 +527,53 @@
             }
         }
 
+        function createDayCell(year, month, day, isOtherMonth, isToday = false) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (isOtherMonth) cell.classList.add('other-month');
+            if (isToday) cell.classList.add('today');
+
+            cell.innerHTML = `<div class="day-number">${String(day).padStart(2, '0')}</div>`;
+
+            const slotsContainer = document.createElement('div');
+            slotsContainer.className = 'slots-container';
+
+            const matchedSlots = sheetData.filter(item => {
+                const itemDateObj = new Date(item.date);
+                return itemDateObj.getFullYear() === year && 
+                       itemDateObj.getMonth() === month && 
+                       itemDateObj.getDate() === day;
+            });
+
+            if (matchedSlots.length > 0) {
+                matchedSlots.forEach(slot => {
+                    const badge = document.createElement('a');
+                    badge.className = 'slot-badge';
+                    badge.href = BOOKING_LINE_URL;
+                    badge.target = '_blank';
+                    
+                    const isFull = slot.available <= 0;
+                    if (isFull) {
+                        badge.classList.add('full');
+                        badge.innerHTML = `<span class="slot-title">${slot.project || '潛水行程'}</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span>額滿</span></span>`;
+                    } else {
+                        badge.innerHTML = `<span class="slot-title">${slot.project || '潛水行程'} (餘 ${slot.available})</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span style="color:var(--primary-color)">預約</span></span>`;
+                    }
+                    slotsContainer.appendChild(badge);
+                });
+            } else if (!isOtherMonth) {
+                const emptyBadge = document.createElement('a');
+                emptyBadge.className = 'slot-badge empty-clickable';
+                emptyBadge.href = BOOKING_LINE_URL;
+                emptyBadge.target = '_blank';
+                emptyBadge.innerText = '可預約';
+                slotsContainer.appendChild(emptyBadge);
+            }
+
+            cell.appendChild(slotsContainer);
+            return cell;
+        }
+
         function parseGoogleDate(dateStr) {
             if (typeof dateStr === 'string' && dateStr.startsWith('Date')) {
                 const parts = dateStr.match(/\d+/g);
@@ -510,60 +626,11 @@
             }
         }
 
-        function createDayCell(year, month, day, isOtherMonth, isToday = false) {
-            const cell = document.createElement('div');
-            cell.className = 'day-cell';
-            if (isOtherMonth) cell.classList.add('other-month');
-            if (isToday) cell.classList.add('today');
-
-            cell.innerHTML = `<div class="day-number">${String(day).padStart(2, '0')}</div>`;
-
-            const slotsContainer = document.createElement('div');
-            slotsContainer.className = 'slots-container';
-
-            const matchedSlots = sheetData.filter(item => {
-                const itemDateObj = new Date(item.date);
-                return itemDateObj.getFullYear() === year && 
-                       itemDateObj.getMonth() === month && 
-                       itemDateObj.getDate() === day;
-            });
-
-            if (matchedSlots.length > 0) {
-                matchedSlots.forEach(slot => {
-                    const badge = document.createElement('a');
-                    badge.className = 'slot-badge';
-                    badge.href = BOOKING_LINE_URL;
-                    badge.target = '_blank';
-                    
-                    const isFull = slot.available <= 0;
-                    if (isFull) {
-                        badge.classList.add('full');
-                        badge.innerHTML = `<div class="slot-title">${slot.project || '潛水行程'}</div><div class="slot-meta"><span>${slot.period}${slot.time}點</span><span>額滿</span></div>`;
-                    } else {
-                        badge.innerHTML = `<div class="slot-title">${slot.project || '潛水行程'} (餘 ${slot.available}人)</div><div class="slot-meta"><span>${slot.period}${slot.time}點</span><span style="color:var(--primary-color)">點擊預約</span></div>`;
-                    }
-                    slotsContainer.appendChild(badge);
-                });
-            } else if (!isOtherMonth) {
-                const emptyBadge = document.createElement('a');
-                emptyBadge.className = 'slot-badge empty-clickable';
-                emptyBadge.href = BOOKING_LINE_URL;
-                emptyBadge.target = '_blank';
-                emptyBadge.innerText = '可預約';
-                slotsContainer.appendChild(emptyBadge);
-            }
-
-            cell.appendChild(slotsContainer);
-            return cell;
-        }
-
         function changeMonth(direction) {
             currentDate.setMonth(currentDate.getMonth() + direction);
-            
             document.getElementById('loading').style.display = 'block';
             document.getElementById('loading').innerText = "正在載入教練行程與預約名額...";
             document.getElementById('daysGrid').style.display = 'none';
-            
             fetchGoogleSheet();
         }
 
@@ -571,3 +638,5 @@
     </script>
 </body>
 </html>
+
+```
