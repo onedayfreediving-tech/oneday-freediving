@@ -9,7 +9,7 @@
             --bg-color: #0b1528;
             --card-bg: #13223f;
             --text-color: #f1f5f9;
-            --primary-color: #d1b88a;
+            --primary-color: #38bdf8; /* 已全面改為藍色 */
             --border-color: #233554;
             --disabled-color: #1e293b;
             --success-color: #10b981;
@@ -62,7 +62,7 @@
         .back-home-btn:hover {
             background-color: var(--primary-color);
             color: var(--bg-color);
-            box-shadow: 0 0 12px rgba(209, 184, 138, 0.4);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
 
         /* 課程時間對照表面板 */
@@ -81,15 +81,15 @@
             font-size: 14px;
             font-weight: bold;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             text-align: center;
             letter-spacing: 1px;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
             text-align: center;
         }
 
@@ -97,7 +97,7 @@
             background-color: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(35, 53, 84, 0.5);
             border-radius: 8px;
-            padding: 10px;
+            padding: 10px 5px;
         }
 
         .info-label {
@@ -109,7 +109,7 @@
         .info-value {
             font-size: 15px;
             font-weight: bold;
-            color: var(--text-color);
+            color: var(--primary-color); /* 統一使用藍色 */
         }
 
         /* 日曆主容器 */
@@ -121,6 +121,7 @@
             max-width: 950px;
             padding: 20px;
             box-sizing: border-box;
+            margin-bottom: 20px;
         }
 
         .calendar-header {
@@ -182,7 +183,7 @@
 
         .day-cell.today {
             border-color: var(--primary-color);
-            box-shadow: 0 0 8px rgba(209, 184, 138, 0.2);
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
         }
 
         .day-cell.other-month {
@@ -209,8 +210,8 @@
         }
 
         .slot-badge {
-            background-color: rgba(209, 184, 138, 0.1);
-            border: 1px solid rgba(209, 184, 138, 0.3);
+            background-color: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.25);
             color: var(--text-color);
             border-radius: 4px;
             padding: 4px;
@@ -238,8 +239,8 @@
         }
 
         .slot-badge.empty-clickable {
-            background-color: rgba(56, 189, 248, 0.05);
-            border: 1px dashed rgba(56, 189, 248, 0.4);
+            background-color: rgba(56, 189, 248, 0.03);
+            border: 1px dashed rgba(56, 189, 248, 0.3);
             color: var(--link-color);
             text-align: center;
             justify-content: center;
@@ -276,10 +277,19 @@
             font-size: 16px;
         }
 
+        /* 底部註記文字樣式 */
+        .footer-note {
+            color: #94a3b8;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
         @media (max-width: 768px) {
             body { padding: 10px; }
             .info-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .info-item:last-child { grid-column: span 2; } /* 讓奇數項在手機滿版 */
             .day-cell { min-height: 85px; padding: 4px; }
             .day-number { font-size: 11px; }
             .slot-badge { font-size: 9px; padding: 2px; }
@@ -301,23 +311,27 @@
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">初階課程</div>
-                <div class="info-value" style="color:#38bdf8;">3 天</div>
+                <div class="info-value">3 天</div>
             </div>
             <div class="info-item">
                 <div class="info-label">進階/高階</div>
-                <div class="info-value" style="color:#818cf8;">4 天</div>
+                <div class="info-value">4 天</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">海豚體驗班</div>
+                <div class="info-value">半 天</div>
             </div>
             <div class="info-item">
                 <div class="info-label">導潛</div>
-                <div class="info-value" style="color:#34d399;">2 小時</div>
+                <div class="info-value">2 小時</div>
             </div>
             <div class="info-item">
                 <div class="info-label">訓練</div>
-                <div class="info-value" style="color:#fbbf24;">2 小時</div>
+                <div class="info-value">2 小時</div>
             </div>
             <div class="info-item">
                 <div class="info-label">團練</div>
-                <div class="info-value" style="color:#f87171;">2 小時</div>
+                <div class="info-value">2 小時</div>
             </div>
         </div>
     </div>
@@ -341,6 +355,11 @@
 
         <div id="loading" class="loading-text">正在載入教練行程與預約名額...</div>
         <div class="days-grid" id="daysGrid" style="display: none;"></div>
+    </div>
+
+    <!-- 底部註記文字 -->
+    <div class="footer-note">
+        * 若需要客製化時段，證照班分段上課請訊息官方帳號 *
     </div>
 
     <script>
