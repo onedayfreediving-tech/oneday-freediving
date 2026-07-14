@@ -274,22 +274,10 @@
             white-space: nowrap;
         }
         
-        .loc-tag.taichung {
-            background-color: var(--taichung-bg);
-        }
-        
-        .loc-tag.hengchun {
-            background-color: var(--hengchun-bg);
-        }
-        
-        .loc-tag.liuqiu {
-            background-color: var(--liuqiu-bg);
-        }
-
-        .loc-tag.special-trip {
-            background-color: var(--trip-bg);
-            box-shadow: 0 0 4px rgba(168, 85, 247, 0.5);
-        }
+        .loc-tag.taichung { background-color: var(--taichung-bg); }
+        .loc-tag.hengchun { background-color: var(--hengchun-bg); }
+        .loc-tag.liuqiu { background-color: var(--liuqiu-bg); }
+        .loc-tag.special-trip { background-color: var(--trip-bg); box-shadow: 0 0 4px rgba(168, 85, 247, 0.5); }
 
         .slot-badge.full {
             background-color: var(--disabled-color);
@@ -349,93 +337,27 @@
             line-height: 1.6;
         }
 
-        /* 📱 針對手機與平板的排版優化 */
+        /* 📱 手機與平板優化 */
         @media (max-width: 768px) {
-            body { 
-                padding: 10px; 
-            }
-
-            .scroll-hint {
-                display: inline-block;
-            }
-
-            .info-panel {
-                padding: 12px 15px;
-            }
+            body { padding: 10px; }
+            .scroll-hint { display: inline-block; }
+            .info-panel { padding: 12px 15px; }
             .info-grid {
-                display: flex;
-                overflow-x: auto;
-                gap: 10px;
-                padding-bottom: 8px;
-                -webkit-overflow-scrolling: touch;
-                justify-content: flex-start;
+                display: flex; overflow-x: auto; gap: 10px; padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch; justify-content: flex-start;
             }
-            .info-grid::-webkit-scrollbar {
-                height: 4px;
-            }
-            .info-grid::-webkit-scrollbar-thumb {
-                background-color: var(--border-color);
-                border-radius: 10px;
-            }
-
-            .calendar-container {
-                padding: 8px;
-            }
-            .days-grid {
-                gap: 4px;
-            }
-            .day-cell { 
-                min-height: 95px; 
-                padding: 4px 2px; 
-                border-radius: 6px;
-            }
-            .day-number { 
-                font-size: 11px; 
-                margin-bottom: 4px;
-                padding-left: 2px;
-            }
-            .slots-container {
-                gap: 3px;
-            }
-            
-            .slot-badge { 
-                font-size: 10px; 
-                padding: 2px 3px; 
-                border-radius: 4px;
-                flex-direction: column; 
-                align-items: stretch;
-                gap: 1px;
-            }
-            .slot-badge.empty-clickable {
-                padding: 6px 0; 
-                font-size: 10px;
-            }
-            .slot-title {
-                font-size: 10px;
-                line-height: 1.1;
-                max-width: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap; 
-                text-align: center;
-                justify-content: center;
-            }
-            .loc-tag {
-                font-size: 8px;
-                padding: 0px 3px;
-                margin-right: 2px;
-            }
-            .slot-meta { 
-                font-size: 8px; 
-                line-height: 1;
-                display: flex;
-                justify-content: space-between; 
-                width: 100%;
-                opacity: 0.8;
-                border-top: 1px solid rgba(255, 255, 255, 0.08); 
-                padding-top: 1px;
-                margin-top: 1px;
-            }
+            .info-grid::-webkit-scrollbar { height: 4px; }
+            .info-grid::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
+            .calendar-container { padding: 8px; }
+            .days-grid { gap: 4px; }
+            .day-cell { min-height: 95px; padding: 4px 2px; border-radius: 6px; }
+            .day-number { font-size: 11px; margin-bottom: 4px; padding-left: 2px; }
+            .slots-container { gap: 3px; }
+            .slot-badge { font-size: 10px; padding: 2px 3px; border-radius: 4px; flex-direction: column; align-items: stretch; gap: 1px; }
+            .slot-badge.empty-clickable { padding: 6px 0; font-size: 10px; }
+            .slot-title { font-size: 10px; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; justify-content: center; }
+            .loc-tag { font-size: 8px; padding: 0px 3px; margin-right: 2px; }
+            .slot-meta { font-size: 8px; line-height: 1; display: flex; justify-content: space-between; width: 100%; opacity: 0.8; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1px; margin-top: 1px; }
         }
     </style>
 </head>
@@ -444,40 +366,20 @@
     <h1>潛水預約行事曆</h1>
     <div class="subtitle">即時查看排班與剩餘名額，點擊即可直接導向 LINE 官方帳號進行預約</div>
     
-    <!-- 返回官網按鈕 -->
     <a href="https://www.onedayfreediving.com" class="back-home-btn">← 返回官網</a>
 
-    <!-- 課程時間一覽表 -->
     <div class="info-panel">
         <div class="info-header-row">
             <div class="info-title">⏱️ 課程與行程時間說明</div>
             <div class="scroll-hint">往右滑看更多 ➔</div>
         </div>
         <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">初階課程</div>
-                <div class="info-value">3 天</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">進階/高階</div>
-                <div class="info-value">4 天</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">海豚體驗班</div>
-                <div class="info-value">半 天</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">導潛</div>
-                <div class="info-value">2 小時</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">訓練</div>
-                <div class="info-value">2 小時</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">團練</div>
-                <div class="info-value">2 小時</div>
-            </div>
+            <div class="info-item"><div class="info-label">初階課程</div><div class="info-value">3 天</div></div>
+            <div class="info-item"><div class="info-label">進階/高階</div><div class="info-value">4 天</div></div>
+            <div class="info-item"><div class="info-label">海豚體驗班</div><div class="info-value">半 天</div></div>
+            <div class="info-item"><div class="info-label">導潛</div><div class="info-value">2 小時</div></div>
+            <div class="info-item"><div class="info-label">訓練</div><div class="info-value">2 小時</div></div>
+            <div class="info-item"><div class="info-label">團練</div><div class="info-value">2 小時</div></div>
         </div>
     </div>
 
@@ -487,25 +389,14 @@
             <div class="month-title" id="monthTitle">2026年 7月</div>
             <button class="nav-btn" onclick="changeMonth(1)">&gt;</button>
         </div>
-
         <div class="weekdays">
-            <div>SUN</div>
-            <div>MON</div>
-            <div>TUE</div>
-            <div>WED</div>
-            <div>THU</div>
-            <div>FRI</div>
-            <div>SAT</div>
+            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
         </div>
-
         <div id="loading" class="loading-text">正在載入教練行程與預約名額...</div>
         <div class="days-grid" id="daysGrid" style="display: none;"></div>
     </div>
 
-    <!-- 底部註記文字 -->
-    <div class="footer-note">
-        * 若需要客製化時段，證照班分段上課請訊息官方帳號 *
-    </div>
+    <div class="footer-note">* 若需要客製化時段，證照班分段上課請訊息官方帳號 *</div>
 
     <script>
         const SPREADSHEET_ID = '1airsLt1cE5XAoneMjfdQCGsOPcjxZ_ZZ-1rDU3EWtbg';
@@ -525,27 +416,61 @@
                 const data = JSON.parse(jsonString);
                 
                 const rows = data.table.rows;
-                const headers = data.table.cols.map(col => col.label || '');
+                const headers = data.table.cols.map(col => col ? col.label || '' : '');
                 
+                let lastValidDate = null;
+
+                // 智慧尋找「剩餘名額」欄位的索引，支援未來自由新增課程
+                let availableIndex = headers.findIndex(h => h && (h.includes('Available') || h.includes('剩餘')));
+                if (availableIndex === -1) availableIndex = headers.length - 1; // 找不到則預設為最後一欄
+
                 sheetData = rows.map(row => {
                     const cells = row.c;
-                    if (!cells || !cells[0] || !cells[1]) return null;
+                    if (!cells) return null;
                     
+                    // 1. 強制讀取可視文字 (.f 優先) 來取得日期
+                    let dateStr = null;
+                    if (cells[0]) {
+                        dateStr = cells[0].f ? cells[0].f : parseGoogleDate(cells[0].v);
+                    }
+                    
+                    if (dateStr) {
+                        lastValidDate = dateStr;
+                    } else if (cells[1] && (cells[1].f || cells[1].v !== null)) {
+                        dateStr = lastValidDate; // 若日期空白但有時間，自動帶入上一筆日期
+                    }
+
+                    // 2. 取得時間 (.f 優先，解決 14:00 陣列問題)
+                    let timeStr = '';
+                    if (cells[1]) {
+                        timeStr = cells[1].f ? cells[1].f : parseGoogleTime(cells[1].v);
+                    }
+
+                    if (!dateStr || !timeStr) return null;
+                    
+                    // 3. 自動掃描填寫的課程
                     let project = '';
-                    for (let i = 4; i <= 10; i++) {
+                    for (let i = 4; i < availableIndex; i++) {
                         if (cells[i] && cells[i].v !== null && cells[i].v !== '') {
-                            project = headers[i] || '潛水行程';
+                            let cellText = cells[i].f ? cells[i].f : String(cells[i].v);
+                            // 若填入純數字(例如人數)或打勾，使用標題名稱
+                            if (!isNaN(cellText) || cellText.trim().toLowerCase() === 'v') {
+                                project = headers[i] || '潛水行程';
+                            } else {
+                                // 若填寫如「小琉球導潛」，直接使用該文字
+                                project = cellText;
+                            }
                             break;
                         }
                     }
 
                     return {
-                        date: parseGoogleDate(cells[0].v),
-                        time: parseGoogleTime(cells[1].v),
-                        period: cells[2] ? cells[2].v : '',
-                        capacity: cells[3] ? cells[3].v : 0,
+                        date: dateStr,
+                        time: timeStr,
+                        period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
+                        capacity: cells[3] ? (cells[3].v || 0) : 0,
                         project: project,
-                        available: cells[11] ? cells[11].v : 0
+                        available: cells[availableIndex] ? (cells[availableIndex].v || 0) : 0
                     };
                 }).filter(item => item && item.date && item.time !== '');
                 
@@ -558,29 +483,25 @@
             }
         }
 
-        // 修改後的地點與特殊行程解析函數
+        // 地點膠囊標籤邏輯
         function getProjectTitleHTML(projectName) {
             if (!projectName) return '潛水行程';
             
-            // 1. 優先偵測特殊行程：「潛水旅遊」、「潛旅」、「旅遊」、「出國」
             if (projectName.includes('旅遊') || projectName.includes('潛旅') || projectName.includes('出國')) {
                 let cleanedName = projectName.replace('潛水旅遊', '').replace('潛旅', '').replace('旅遊', '').replace('出國', '').trim();
                 return `<span class="loc-tag special-trip">✈️ 潛旅</span>${cleanedName || '行程'}`;
             }
 
-            // 2. 偵測台中
             if (projectName.includes('台中')) {
                 const cleanedName = projectName.replace('台中', '').trim();
                 return `<span class="loc-tag taichung">台中</span>${cleanedName || '行程'}`;
             }
             
-            // 3. 偵測恆春
             if (projectName.includes('恆春')) {
                 const cleanedName = projectName.replace('恆春', '').trim();
                 return `<span class="loc-tag hengchun">恆春</span>${cleanedName || '行程'}`;
             }
             
-            // 4. 偵測小琉球或琉球
             if (projectName.includes('小琉球') || projectName.includes('琉球')) {
                 const cleanedName = projectName.replace('小琉球', '').replace('琉球', '').trim();
                 return `<span class="loc-tag liuqiu">琉球</span>${cleanedName || '行程'}`;
@@ -617,11 +538,14 @@
                     const projectHTML = getProjectTitleHTML(slot.project);
                     const isFull = slot.available <= 0;
                     
+                    // 優化時間顯示：有冒號(如14:00)就不加「點」，沒冒號(如14)就加「點」
+                    const displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
+                    
                     if (isFull) {
                         badge.classList.add('full');
-                        badge.innerHTML = `<span class="slot-title">${projectHTML}</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span>額滿</span></span>`;
+                        badge.innerHTML = `<span class="slot-title">${projectHTML}</span><span class="slot-meta"><span>${slot.period} ${displayTime}</span><span>額滿</span></span>`;
                     } else {
-                        badge.innerHTML = `<span class="slot-title">${projectHTML} (餘 ${slot.available})</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span style="color:var(--primary-color)">預約</span></span>`;
+                        badge.innerHTML = `<span class="slot-title">${projectHTML} (餘 ${slot.available})</span><span class="slot-meta"><span>${slot.period} ${displayTime}</span><span style="color:var(--primary-color)">預約</span></span>`;
                     }
                     slotsContainer.appendChild(badge);
                 });
@@ -639,6 +563,7 @@
         }
 
         function parseGoogleDate(dateStr) {
+            if (!dateStr) return null;
             if (typeof dateStr === 'string' && dateStr.startsWith('Date')) {
                 const parts = dateStr.match(/\d+/g);
                 if (parts) {
