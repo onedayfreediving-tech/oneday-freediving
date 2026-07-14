@@ -1,14 +1,3 @@
-你觀察得非常敏銳！如果同一天裡同時有「上午」和「下午」兩個預約，在手機版狹窄的格子中，如果強制把字體放大並左右並排，兩筆預約擠在一起反而會造成嚴重的文字重疊、換行，視覺上會變得更凌亂。
-
-為了徹底解決這個痛點，我為手機版重新設計了「垂直精緻流線型」排版：
-
-1. **取消左右並排，改回垂直堆疊，但極致壓縮高度**：項目與時間依然垂直排列，但把內距（Padding）和行高縮到最小，讓兩筆預約在格子裡像兩條乾淨的「扁平小標籤」一樣疊放。
-2. **字體縮小至精緻的 $10\text{px}$**：不盲目放大字體，而是使用更緊湊的字型比例，並限制「項目名稱」的最大寬度，超出時會自動呈現省略號（...），絕對不會撐破格子或重疊。
-3. **可預約按鈕扁平化**：空白日期的「可預約」按鈕也同步縮小高度，確保不論哪一天，格子的高度都非常整齊一致。
-
-請複製以下修正後的完整程式碼，直接覆蓋 GitHub 的 `index.html`：
-
-```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -26,6 +15,12 @@
             --success-color: #10b981;
             --link-color: #38bdf8;
             --info-bg: #1e293b;
+            
+            /* 各地點與特殊行程的顏色設定 */
+            --taichung-bg: #10b981;  /* 台中：翠綠色 */
+            --hengchun-bg: #ef4444;  /* 恆春：珊瑚紅 */
+            --liuqiu-bg: #0284c7;    /* 小琉球：海洋藍 */
+            --trip-bg: #a855f7;      /* 潛水旅遊：極光紫 */
         }
 
         body {
@@ -266,6 +261,36 @@
             border-color: var(--primary-color);
         }
 
+        /* 🏷️ 地點與行程膠囊樣式 */
+        .loc-tag {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 1px 4px;
+            border-radius: 3px;
+            color: #ffffff;
+            margin-right: 4px;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+        
+        .loc-tag.taichung {
+            background-color: var(--taichung-bg);
+        }
+        
+        .loc-tag.hengchun {
+            background-color: var(--hengchun-bg);
+        }
+        
+        .loc-tag.liuqiu {
+            background-color: var(--liuqiu-bg);
+        }
+
+        .loc-tag.special-trip {
+            background-color: var(--trip-bg);
+            box-shadow: 0 0 4px rgba(168, 85, 247, 0.5);
+        }
+
         .slot-badge.full {
             background-color: var(--disabled-color);
             border-color: transparent;
@@ -304,6 +329,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
         }
 
         .loading-text {
@@ -351,15 +378,14 @@
                 border-radius: 10px;
             }
 
-            /* 日曆整體間距微調 */
             .calendar-container {
                 padding: 8px;
             }
             .days-grid {
-                gap: 4px; /* 格子間距保持緊湊 */
+                gap: 4px;
             }
             .day-cell { 
-                min-height: 95px; /* 給予上下足夠高度放置兩筆預約 */
+                min-height: 95px; 
                 padding: 4px 2px; 
                 border-radius: 6px;
             }
@@ -369,20 +395,19 @@
                 padding-left: 2px;
             }
             .slots-container {
-                gap: 3px; /* 縮小多筆預約之間的間隙 */
+                gap: 3px;
             }
             
-            /* 📱 手機版專屬緊湊標籤：極致利用垂直空間，絕不重疊 */
             .slot-badge { 
                 font-size: 10px; 
-                padding: 2px 3px; /* 極小內距，避免過度膨脹 */
+                padding: 2px 3px; 
                 border-radius: 4px;
-                flex-direction: column; /* 保持垂直排列，避免單行擠壓 */
+                flex-direction: column; 
                 align-items: stretch;
                 gap: 1px;
             }
             .slot-badge.empty-clickable {
-                padding: 6px 0; /* 空白可預約按鈕高度同步優雅扁平化 */
+                padding: 6px 0; 
                 font-size: 10px;
             }
             .slot-title {
@@ -391,17 +416,23 @@
                 max-width: 100%;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                white-space: nowrap; /* 項目過長時自動變 ... 保持乾淨 */
-                text-align: center; /* 手機置中對齊更好看 */
+                white-space: nowrap; 
+                text-align: center;
+                justify-content: center;
+            }
+            .loc-tag {
+                font-size: 8px;
+                padding: 0px 3px;
+                margin-right: 2px;
             }
             .slot-meta { 
-                font-size: 8px; /* 時間稍微縮小 */
+                font-size: 8px; 
                 line-height: 1;
                 display: flex;
-                justify-content: space-between; /* 左右對分，例如：上午9點 ｜ 預約 */
+                justify-content: space-between; 
                 width: 100%;
                 opacity: 0.8;
-                border-top: 1px solid rgba(255, 255, 255, 0.08); /* 淡淡的分隔線 */
+                border-top: 1px solid rgba(255, 255, 255, 0.08); 
                 padding-top: 1px;
                 margin-top: 1px;
             }
@@ -527,6 +558,37 @@
             }
         }
 
+        // 修改後的地點與特殊行程解析函數
+        function getProjectTitleHTML(projectName) {
+            if (!projectName) return '潛水行程';
+            
+            // 1. 優先偵測特殊行程：「潛水旅遊」、「潛旅」、「旅遊」、「出國」
+            if (projectName.includes('旅遊') || projectName.includes('潛旅') || projectName.includes('出國')) {
+                let cleanedName = projectName.replace('潛水旅遊', '').replace('潛旅', '').replace('旅遊', '').replace('出國', '').trim();
+                return `<span class="loc-tag special-trip">✈️ 潛旅</span>${cleanedName || '行程'}`;
+            }
+
+            // 2. 偵測台中
+            if (projectName.includes('台中')) {
+                const cleanedName = projectName.replace('台中', '').trim();
+                return `<span class="loc-tag taichung">台中</span>${cleanedName || '行程'}`;
+            }
+            
+            // 3. 偵測恆春
+            if (projectName.includes('恆春')) {
+                const cleanedName = projectName.replace('恆春', '').trim();
+                return `<span class="loc-tag hengchun">恆春</span>${cleanedName || '行程'}`;
+            }
+            
+            // 4. 偵測小琉球或琉球
+            if (projectName.includes('小琉球') || projectName.includes('琉球')) {
+                const cleanedName = projectName.replace('小琉球', '').replace('琉球', '').trim();
+                return `<span class="loc-tag liuqiu">琉球</span>${cleanedName || '行程'}`;
+            }
+            
+            return projectName;
+        }
+
         function createDayCell(year, month, day, isOtherMonth, isToday = false) {
             const cell = document.createElement('div');
             cell.className = 'day-cell';
@@ -552,12 +614,14 @@
                     badge.href = BOOKING_LINE_URL;
                     badge.target = '_blank';
                     
+                    const projectHTML = getProjectTitleHTML(slot.project);
                     const isFull = slot.available <= 0;
+                    
                     if (isFull) {
                         badge.classList.add('full');
-                        badge.innerHTML = `<span class="slot-title">${slot.project || '潛水行程'}</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span>額滿</span></span>`;
+                        badge.innerHTML = `<span class="slot-title">${projectHTML}</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span>額滿</span></span>`;
                     } else {
-                        badge.innerHTML = `<span class="slot-title">${slot.project || '潛水行程'} (餘 ${slot.available})</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span style="color:var(--primary-color)">預約</span></span>`;
+                        badge.innerHTML = `<span class="slot-title">${projectHTML} (餘 ${slot.available})</span><span class="slot-meta"><span>${slot.period}${slot.time}點</span><span style="color:var(--primary-color)">預約</span></span>`;
                     }
                     slotsContainer.appendChild(badge);
                 });
@@ -638,5 +702,3 @@
     </script>
 </body>
 </html>
-
-```
