@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課程報名表｜One Day 自由潛水工作室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1528;
+    --bg-card:#101f38;
+    --bg-field:#0c1930;
+    --border:#1d3355;
+    --accent:#2dd4bf;
+    --accent-2:#38bdf8;
+    --text:#eaf2ff;
+    --text-dim:#8ea3c6;
+    --danger:#ff6b6b;
+    --ok:#34d399;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(circle at 50% -10%, #14294a 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Noto Sans TC', sans-serif;
+    min-height:100vh;
+    padding:24px 16px 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  header{text-align:center;margin-bottom:24px;}
+  .pixel{font-family:'Press Start 2P', 'Noto Sans TC', sans-serif;font-size:13px;color:var(--accent);letter-spacing:1px;}
+  h1{font-size:22px;margin:10px 0 6px;color:var(--text);}
+  .sub{color:var(--text-dim);font-size:14px;line-height:1.6;}
+  .calendar-link{
+    display:inline-block;margin-top:14px;padding:8px 18px;border:1px solid var(--accent);
+    border-radius:999px;color:var(--accent);text-decoration:none;font-size:13px;
+  }
+  .calendar-link:hover{background:rgba(45,212,191,.1);}
+
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px 20px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .field{margin-bottom:18px;}
+  label{display:block;font-size:14px;color:var(--text-dim);margin-bottom:6px;}
+  label .req{color:var(--danger);margin-left:2px;}
+  input[type=text], input[type=date], input[type=number], select{
+    width:100%;
+    background:var(--bg-field);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    color:var(--text);
+    font-size:15px;
+    font-family:inherit;
+    appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M0 0l7 8 7-8z' fill='%238ea3c6'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:36px;
+  }
+  input:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.15);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){.row2{grid-template-columns:1fr;}}
+
+  .medical{
+    background:var(--bg-field);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    font-size:13px;
+    line-height:1.8;
+    color:var(--text-dim);
+    max-height:180px;
+    overflow-y:auto;
+    margin-bottom:14px;
+  }
+  .medical b{color:var(--text);}
+  .checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:22px;}
+  .checkbox-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:0 0 auto;}
+  .checkbox-row span{font-size:14px;color:var(--text);}
+
+  button.submit{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    color:#04121f;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    transition:opacity .2s;
+  }
+  button.submit:disabled{opacity:.6;cursor:not-allowed;}
+
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:14px;display:none;}
+  .msg.error{display:block;background:rgba(255,107,107,.12);border:1px solid var(--danger);color:#ffb4b4;}
+  .msg.info{display:block;background:rgba(56,189,248,.12);border:1px solid var(--accent-2);color:#bfe9ff;}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(3,8,18,.75);
+    display:none;align-items:center;justify-content:center;padding:16px;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:16px;
+    max-width:420px;width:100%;padding:24px 20px;text-align:center;
+  }
+  .modal h2{margin:0 0 6px;font-size:18px;color:var(--ok);}
+  .modal p.small{color:var(--text-dim);font-size:13px;margin-bottom:16px;}
+  .pay-amount{
+    font-size:15px;color:var(--text-dim);margin-bottom:4px;
+  }
+  .pay-amount b{display:block;font-size:28px;color:var(--accent);margin-top:2px;}
+  .bank-box{
+    background:var(--bg-field);border:1px solid var(--border);border-radius:12px;
+    padding:14px;text-align:left;font-size:14px;line-height:2;margin-bottom:18px;
+  }
+  .bank-box b{color:var(--accent);}
+  .modal-btn{
+    display:block;width:100%;padding:13px;border-radius:10px;border:none;
+    font-size:15px;font-weight:700;margin-bottom:10px;cursor:pointer;text-decoration:none;
+  }
+  .modal-btn.line{background:#06C755;color:#fff;}
+  .modal-btn.close{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="pixel">ONE DAY FREEDIVE</div>
+    <h1>課程報名表</h1>
+    <p class="sub">填寫以下資料完成報名，送出後會提供付款帳號資訊，<br>並可一鍵傳送報名資訊到官方 LINE 帳號。</p>
+    <a class="calendar-link" href="https://onedayfreediving-tech.github.io/oneday-freediving/" target="_blank" rel="noopener">查看預約行事曆／可預約時段 →</a>
+  </header>
+
+  <form class="card" id="signupForm" novalidate>
+
+    <div class="field">
+      <label>真實姓名<span class="req">*</span></label>
+      <input type="text" id="name" required>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>性別<span class="req">*</span></label>
+        <select id="gender" required>
+          <option value="" disabled selected>請選擇</option>
+          <option value="女">女</option>
+          <option value="男">男</option>
+          <option value="不透露">不透露</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>生日<span class="req">*</span></label>
+        <input type="date" id="birthday" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>課程項目<span class="req">*</span></label>
+      <select id="course" required>
+        <option value="" disabled selected>請選擇課程</option>
+        <option value="AIDA1 海豚體驗課（半天）">AIDA1 海豚體驗課（半天）</option>
+        <option value="AIDA2 證照（三天）">AIDA2 證照（三天）</option>
+        <option value="AIDA3 證照（四天）">AIDA3 證照（四天）</option>
+        <option value="AIDA4 證照（四天）">AIDA4 證照（四天）</option>
+        <option value="訓練課程">訓練課程</option>
+        <option value="導潛">導潛</option>
+        <option value="線上平壓課">線上平壓課</option>
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>課程日期<span class="req">*</span></label>
+        <input type="date" id="courseDate" required>
+      </div>
+      <div class="field">
+        <label>上課地點<span class="req">*</span></label>
+        <input type="text" id="location" placeholder="例如：翡翠灣 / 店內教室" required>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>匯款金額<span class="req">*</span></label>
+        <input type="number" id="amount" min="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label>匯款後五碼<span class="req">*</span></label>
+        <input type="text" id="last5" maxlength="5" pattern="\d{5}" inputmode="numeric" placeholder="12345" required>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>緊急聯絡人姓名<span class="req">*</span></label>
+        <input type="text" id="ecName" required>
+      </div>
+      <div class="field">
+        <label>與緊急聯絡人關係<span class="req">*</span></label>
+        <input type="text" id="ecRelation" placeholder="例如：父親 / 配偶" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label style="margin-bottom:8px;">醫療聲明<span class="req">*</span></label>
+      <div class="medical">
+        此醫療聲明的目的是為了讓你在從事自由潛水訓練前找出需由醫師檢查的身體問題。問卷中勾選「是」不見得代表你無法從事自由潛水。選擇「是」表示身體有某些既存的健康問題，在自由潛水前需要尋求專業醫師的建議，避免影響潛水安全。若有勾選「是」，必須要請醫師在檢測後於問卷下方簽名，並表示未發現有任何不適合自由潛水的健康狀況。<br><br>
+        請依照你過去與現在的醫療紀錄誠實回答，內容涵蓋：<b>神經系統疾病、心血管疾病、肺部相關疾病、耳朵相關疾病、鼻竇相關疾病、氣喘、糖尿病相關、懷孕、自潛/水肺相關病史、長期服用藥物、一般醫療病史、新冠肺炎（COVID-19）相關症狀</b>等項目。若有任何不確定，請主動告知教練並勾選「是」。
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="medicalConfirm" required>
+        <span>我已閱讀並確認以上醫療聲明內容<span class="req">*</span></span>
+      </div>
+    </div>
+
+    <button type="submit" class="submit" id="submitBtn">送出報名</button>
+    <div class="msg" id="formMsg"></div>
+  </form>
+</div>
+
+<div class="overlay" id="successOverlay">
+  <div class="modal">
+    <h2>✓ 報名資料已送出</h2>
+    <p class="small">請在 24 小時內完成付款，並點擊下方按鈕通知我們，我們會盡快為您確認名額。</p>
+
+    <div class="pay-amount">
+      應付金額
+      <b id="payAmount">NT$ 0</b>
+    </div>
+
+    <div class="bank-box">
+      銀行：<b>第一銀行（007）</b><br>
+      分行：<b>南投分行</b><br>
+      戶名：<b>紀閔中</b><br>
+      帳號：<b>43168059049</b>
+    </div>
+
+    <div class="bank-box">
+      <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">或使用 LINE Pay 直接轉帳給我：</div>
+      ① 加 LINE 好友：<b>victoorooo</b><br>
+      ② 進入聊天室，點左下角「＋」<br>
+      ③ 選擇「轉帳」，輸入應付金額<br>
+      ④ 選擇用 LINE Pay 付款送出
+    </div>
+
+    <a class="modal-btn line" id="lineBtn" href="#" target="_blank" rel="noopener">我已完成付款，通知我們</a>
+    <button type="button" class="modal-btn close" id="closeModalBtn">關閉</button>
+  </div>
+</div>
+
+<script>
+  // ============== 設定區：老闆／夥伴請依實際狀況修改以下設定 ==============
+  const CONFIG = {
+    // Apps Script 部署後取得的「網路應用程式網址」，貼在這裡（結尾通常是 /exec）
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwPwjwDxg0nBtToFoWvqEJe7K-g6oIQvcdTAdZeASaiyo0rjlVjaoXR0cAjK3BnS85-/exec',
+    // One Day 自由潛水工作室 LINE 官方帳號 ID（已依目前後台資料代填，如有變更請自行修改）
+    LINE_OA_ID: '@833nezny'
+  };
+  // =====================================================================
+
+  const form = document.getElementById('signupForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const formMsg = document.getElementById('formMsg');
+  const overlay = document.getElementById('successOverlay');
+  const lineBtn = document.getElementById('lineBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const payAmountEl = document.getElementById('payAmount');
+
+  function showMsg(text, type){
+    formMsg.textContent = text;
+    formMsg.className = 'msg ' + type;
+  }
+
+  function formatCurrency(amount){
+    const n = Number(amount) || 0;
+    return 'NT$ ' + n.toLocaleString('zh-TW');
+  }
+
+  function buildLineUrl(data){
+    const message = '報名確認\n姓名：' + data.name +
+      '\n課程：' + data.course +
+      '\n應付金額：' + formatCurrency(data.amount) +
+      '\n轉帳後五碼：' + data.last5;
+    return 'https://line.me/R/oaMessage/' + encodeURIComponent(CONFIG.LINE_OA_ID) + '/?' + encodeURIComponent(message);
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    formMsg.className = 'msg';
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const last5 = document.getElementById('last5').value.trim();
+    if (!/^\d{5}$/.test(last5)) {
+      showMsg('匯款後五碼請填寫 5 碼數字。', 'error');
+      return;
+    }
+
+    if (CONFIG.SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
+      showMsg('系統尚未設定完成（尚未貼上 Apps Script 網址），請聯絡工作室協助處理。', 'error');
+      return;
+    }
+
+    const data = {
+      name: document.getElementById('name').value.trim(),
+      gender: document.getElementById('gender').value,
+      birthday: document.getElementById('birthday').value,
+      course: document.getElementById('course').value,
+      courseDate: document.getElementById('courseDate').value,
+      location: document.getElementById('location').value.trim(),
+      amount: document.getElementById('amount').value,
+      last5: last5,
+      emergencyContact: document.getElementById('ecName').value.trim() + '（' + document.getElementById('ecRelation').value.trim() + '）'
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送出中...';
+
+    fetch(CONFIG.SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data)
+    }).then(function(){
+      payAmountEl.textContent = formatCurrency(data.amount);
+      lineBtn.href = buildLineUrl(data);
+      overlay.classList.add('show');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出報名';
+      formMsg.className = 'msg';
+    }).catch(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出報名';
+      showMsg('送出失敗，請檢查網路連線後再試一次；若持續發生，麻煩截圖畫面聯絡工作室。', 'error');
+    });
+  });
+
+  closeModalBtn.addEventListener('click', function(){
+    overlay.classList.remove('show');
+  });
+</script>
+</body>
+</html>
