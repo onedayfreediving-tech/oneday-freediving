@@ -9,7 +9,7 @@
             --bg-color: #0b1528;
             --card-bg: #13223f;
             --text-color: #f1f5f9;
-            --primary-color: #38bdf8; /* 已全面改為藍色 */
+            --primary-color: #38bdf8;
             --border-color: #233554;
             --disabled-color: #1e293b;
             --success-color: #10b981;
@@ -98,6 +98,7 @@
             border: 1px solid rgba(35, 53, 84, 0.5);
             border-radius: 8px;
             padding: 10px 5px;
+            min-width: 100px; /* 確保在手機滑動時不會被壓縮扁掉 */
         }
 
         .info-label {
@@ -109,7 +110,7 @@
         .info-value {
             font-size: 15px;
             font-weight: bold;
-            color: var(--primary-color); /* 統一使用藍色 */
+            color: var(--primary-color);
         }
 
         /* 日曆主容器 */
@@ -287,13 +288,57 @@
             line-height: 1.6;
         }
 
+        /* 📱 針對手機與平板的排版優化 */
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .info-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .day-cell { min-height: 85px; padding: 4px; }
-            .day-number { font-size: 11px; }
-            .slot-badge { font-size: 9px; padding: 2px; }
-            .slot-meta { font-size: 8px; }
+            body { 
+                padding: 10px; 
+            }
+
+            /* 手機版：使課程時間改為橫向滑動，不被擠壓，保持跟網頁版一樣的高級感 */
+            .info-panel {
+                padding: 12px 15px;
+            }
+            .info-grid {
+                display: flex;
+                overflow-x: auto; /* 啟用橫向滾動 */
+                gap: 10px;
+                padding-bottom: 8px; /* 留出滾動條空間 */
+                -webkit-overflow-scrolling: touch; /* 平滑滾動 */
+                justify-content: flex-start;
+            }
+            /* 隱藏預設滾動條以求美觀（非必要，但較乾淨） */
+            .info-grid::-webkit-scrollbar {
+                height: 4px;
+            }
+            .info-grid::-webkit-scrollbar-thumb {
+                background-color: var(--border-color);
+                border-radius: 10px;
+            }
+
+            /* 日曆優化，避免格子過於擁擠 */
+            .calendar-container {
+                padding: 12px;
+            }
+            .days-grid {
+                gap: 5px; /* 縮小格子間距，爭取最大顯示空間 */
+            }
+            .day-cell { 
+                min-height: 90px; 
+                padding: 4px; 
+            }
+            .day-number { 
+                font-size: 11px; 
+            }
+            .slot-badge { 
+                font-size: 9px; 
+                padding: 3px 2px; 
+            }
+            .slot-meta { 
+                font-size: 8px; 
+            }
+            .slot-title {
+                font-size: 9px;
+            }
         }
     </style>
 </head>
