@@ -14,6 +14,7 @@
             --disabled-color: #1e293b;
             --success-color: #10b981;
             --link-color: #38bdf8;
+            --info-bg: #1e293b;
         }
 
         body {
@@ -38,10 +39,80 @@
         .subtitle {
             color: #94a3b8;
             font-size: 13px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             text-align: center;
         }
 
+        /* 返回官網按鈕樣式 */
+        .back-home-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-home-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 12px rgba(209, 184, 138, 0.4);
+        }
+
+        /* 課程時間對照表面板 */
+        .info-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px 20px;
+            width: 100%;
+            max-width: 950px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+
+        .info-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            text-align: center;
+        }
+
+        .info-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(35, 53, 84, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        /* 日曆主容器 */
         .calendar-container {
             background-color: var(--card-bg);
             border-radius: 12px;
@@ -207,6 +278,8 @@
 
         @media (max-width: 768px) {
             body { padding: 10px; }
+            .info-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .info-item:last-child { grid-column: span 2; } /* 讓奇數項在手機滿版 */
             .day-cell { min-height: 85px; padding: 4px; }
             .day-number { font-size: 11px; }
             .slot-badge { font-size: 9px; padding: 2px; }
@@ -218,6 +291,36 @@
 
     <h1>潛水預約行事曆</h1>
     <div class="subtitle">即時查看排班與剩餘名額，點擊即可直接導向 LINE 官方帳號進行預約</div>
+    
+    <!-- 返回官網按鈕 -->
+    <a href="https://www.onedayfreediving.com" class="back-home-btn">← 返回官網</a>
+
+    <!-- 課程時間一覽表 -->
+    <div class="info-panel">
+        <div class="info-title">⏱️ 課程與行程時間說明</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">初階課程</div>
+                <div class="info-value" style="color:#38bdf8;">3 天</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">進階/高階</div>
+                <div class="info-value" style="color:#818cf8;">4 天</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">導潛</div>
+                <div class="info-value" style="color:#34d399;">2 小時</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">訓練</div>
+                <div class="info-value" style="color:#fbbf24;">2 小時</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">團練</div>
+                <div class="info-value" style="color:#f87171;">2 小時</div>
+            </div>
+        </div>
+    </div>
 
     <div class="calendar-container">
         <div class="calendar-header">
@@ -244,11 +347,10 @@
         const SPREADSHEET_ID = '1airsLt1cE5XAoneMjfdQCGsOPcjxZ_ZZ-1rDU3EWtbg';
         const BOOKING_LINE_URL = 'https://lin.ee/BbKIko1';
 
-        let currentDate = new Date(2026, 6, 1); // 預設 2026 年 7 月
+        let currentDate = new Date(2026, 6, 1); 
         let sheetData = [];
 
         async function fetchGoogleSheet() {
-            // 自動根據當前日曆顯示的月份，去抓取對應名稱的分頁（例如：7月、8月）
             const sheetMonthName = `${currentDate.getMonth() + 1}月`;
             const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetMonthName)}`;
             
@@ -275,7 +377,7 @@
 
                     return {
                         date: parseGoogleDate(cells[0].v),
-                        time: cells[1] ? cells[1].v : '',
+                        time: parseGoogleTime(cells[1].v),
                         period: cells[2] ? cells[2].v : '',
                         capacity: cells[3] ? cells[3].v : 0,
                         project: project,
@@ -300,6 +402,18 @@
                 }
             }
             return dateStr;
+        }
+
+        function parseGoogleTime(timeVal) {
+            if (timeVal === null || timeVal === undefined) return '';
+            const timeStr = String(timeVal);
+            if (timeStr.startsWith('Date')) {
+                const parts = timeStr.match(/\d+/g);
+                if (parts && parts.length >= 4) {
+                    return parts[3];
+                }
+            }
+            return timeStr;
         }
 
         function renderCalendar() {
@@ -382,7 +496,6 @@
         function changeMonth(direction) {
             currentDate.setMonth(currentDate.getMonth() + direction);
             
-            // 切換月份時，先秀出 Loading 並重新抓取該月份分頁的資料
             document.getElementById('loading').style.display = 'block';
             document.getElementById('loading').innerText = "正在載入教練行程與預約名額...";
             document.getElementById('daysGrid').style.display = 'none';
