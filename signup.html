@@ -39,7 +39,6 @@
     border-radius:999px;color:var(--accent);text-decoration:none;font-size:13px;
   }
   .calendar-link:hover{background:rgba(45,212,191,.1);}
-
   .card{
     background:var(--bg-card);
     border:1px solid var(--border);
@@ -70,7 +69,6 @@
   input:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.15);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   @media (max-width:520px){.row2{grid-template-columns:1fr;}}
-
   .medical{
     background:var(--bg-field);
     border:1px solid var(--border);
@@ -87,7 +85,6 @@
   .checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:22px;}
   .checkbox-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:0 0 auto;}
   .checkbox-row span{font-size:14px;color:var(--text);}
-
   button.submit{
     width:100%;
     padding:15px;
@@ -101,11 +98,9 @@
     transition:opacity .2s;
   }
   button.submit:disabled{opacity:.6;cursor:not-allowed;}
-
   .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:14px;display:none;}
   .msg.error{display:block;background:rgba(255,107,107,.12);border:1px solid var(--danger);color:#ffb4b4;}
   .msg.info{display:block;background:rgba(56,189,248,.12);border:1px solid var(--accent-2);color:#bfe9ff;}
-
   .overlay{
     position:fixed;inset:0;background:rgba(3,8,18,.75);
     display:none;align-items:center;justify-content:center;padding:16px;z-index:50;
@@ -142,14 +137,11 @@
     <p class="sub">填寫以下資料完成報名，送出後會提供付款帳號資訊，<br>並可一鍵傳送報名資訊到官方 LINE 帳號。</p>
     <a class="calendar-link" href="https://onedayfreediving-tech.github.io/oneday-freediving/" target="_blank" rel="noopener">查看預約行事曆／可預約時段 →</a>
   </header>
-
   <form class="card" id="signupForm" novalidate>
-
     <div class="field">
       <label>真實姓名<span class="req">*</span></label>
       <input type="text" id="name" required>
     </div>
-
     <div class="row2">
       <div class="field">
         <label>性別<span class="req">*</span></label>
@@ -165,7 +157,6 @@
         <input type="date" id="birthday" required>
       </div>
     </div>
-
     <div class="field">
       <label>課程項目<span class="req">*</span></label>
       <select id="course" required>
@@ -179,7 +170,6 @@
         <option value="線上平壓課">線上平壓課</option>
       </select>
     </div>
-
     <div class="row2">
       <div class="field">
         <label>課程日期<span class="req">*</span></label>
@@ -196,7 +186,6 @@
         </select>
       </div>
     </div>
-
     <div class="field">
       <label>報名時段<span class="req">*</span></label>
       <select id="period" required>
@@ -207,7 +196,6 @@
       </select>
       <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">請依「預約行事曆」上該天顯示的時段選擇，若是線上平壓課請選「不限時段」。</div>
     </div>
-
     <div class="field">
       <label>報名人數<span class="req">*</span></label>
       <select id="headcount" required>
@@ -226,7 +214,6 @@
       </select>
       <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">若是幫朋友一起報名，請選實際總人數，系統會依人數自動扣對應名額（最多 12 位）。</div>
     </div>
-
     <div class="row2">
       <div class="field">
         <label>匯款金額<span class="req">*</span></label>
@@ -237,7 +224,6 @@
         <input type="text" id="last5" maxlength="5" pattern="\d{5}" inputmode="numeric" placeholder="12345" required>
       </div>
     </div>
-
     <div class="row2">
       <div class="field">
         <label>緊急聯絡人姓名<span class="req">*</span></label>
@@ -248,7 +234,6 @@
         <input type="text" id="ecRelation" placeholder="例如：父親 / 配偶" required>
       </div>
     </div>
-
     <div class="field">
       <label style="margin-bottom:8px;">醫療聲明<span class="req">*</span></label>
       <div class="medical">
@@ -260,29 +245,24 @@
         <span>我已閱讀並確認以上醫療聲明內容<span class="req">*</span></span>
       </div>
     </div>
-
     <button type="submit" class="submit" id="submitBtn">送出報名</button>
     <div class="msg" id="formMsg"></div>
   </form>
 </div>
-
 <div class="overlay" id="successOverlay">
   <div class="modal">
     <h2>✓ 報名資料已送出</h2>
     <p class="small">請在 24 小時內完成付款，並點擊下方按鈕通知我們，我們會盡快為您確認名額。</p>
-
     <div class="pay-amount">
       應付金額
       <b id="payAmount">NT$ 0</b>
     </div>
-
     <div class="bank-box">
       銀行：<b>第一銀行（007）</b><br>
       分行：<b>南投分行</b><br>
       戶名：<b>紀閔中</b><br>
       帳號：<b>43168059049</b>
     </div>
-
     <div class="bank-box">
       <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">或使用 LINE Pay 直接轉帳給我：</div>
       ① 加 LINE 好友：<b>victoorooo</b><br>
@@ -290,22 +270,23 @@
       ③ 選擇「轉帳」，輸入應付金額<br>
       ④ 選擇用 LINE Pay 付款送出
     </div>
-
     <a class="modal-btn line" id="lineBtn" href="#" target="_blank" rel="noopener">我已完成付款，通知我們</a>
     <button type="button" class="modal-btn close" id="closeModalBtn">關閉</button>
   </div>
 </div>
-
 <script>
   // ============== 設定區：老闆／夥伴請依實際狀況修改以下設定 ==============
   const CONFIG = {
     // Apps Script 部署後取得的「網路應用程式網址」，貼在這裡（結尾通常是 /exec）
     SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxRRk5956x2Z3dlNnlB2GqRJE830s2_VCc6HL2eJfmJmnGZoez_u9h9RI16Wt-Gq_UB/exec',
     // One Day 自由潛水工作室 LINE 官方帳號 ID（已依目前後台資料代填，如有變更請自行修改）
-    LINE_OA_ID: '@833nezny'
+    LINE_OA_ID: '@833nezny',
+    // ⚠️ 2026-07-15 新增：API 授權 Token，必須跟 Code.gs 裡的 SECRET_TOKEN 完全一致，
+    // 否則後端會把每一筆報名都擋下來（回傳 Unauthorized Access，資料不會寫入試算表）。
+    // 如果之後要更換，記得同一時間去 Code.gs 把 SECRET_TOKEN 也改成一樣的新值。
+    API_TOKEN: 'ef54ad6496f73c13f9411049fb88154a6ed3ebbf526f3bfa2f61330331fd3e1b'
   };
   // =====================================================================
-
   const form = document.getElementById('signupForm');
   const submitBtn = document.getElementById('submitBtn');
   const formMsg = document.getElementById('formMsg');
@@ -313,17 +294,14 @@
   const lineBtn = document.getElementById('lineBtn');
   const closeModalBtn = document.getElementById('closeModalBtn');
   const payAmountEl = document.getElementById('payAmount');
-
   function showMsg(text, type){
     formMsg.textContent = text;
     formMsg.className = 'msg ' + type;
   }
-
   function formatCurrency(amount){
     const n = Number(amount) || 0;
     return 'NT$ ' + n.toLocaleString('zh-TW');
   }
-
   function buildLineUrl(data){
     const message = '報名確認\n姓名：' + data.name +
       '\n課程：' + data.course +
@@ -333,34 +311,29 @@
       '\n轉帳後五碼：' + data.last5;
     return 'https://line.me/R/oaMessage/' + CONFIG.LINE_OA_ID + '/?' + encodeURIComponent(message);
   }
-
   form.addEventListener('submit', function(e){
     e.preventDefault();
     formMsg.className = 'msg';
-
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
-
     const last5 = document.getElementById('last5').value.trim();
     if (!/^\d{5}$/.test(last5)) {
       showMsg('匯款後五碼請填寫 5 碼數字。', 'error');
       return;
     }
-
     const headcount = parseInt(document.getElementById('headcount').value, 10);
     if (!headcount || headcount < 1) {
       showMsg('報名人數請填寫 1 以上的整數。', 'error');
       return;
     }
-
     if (CONFIG.SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
       showMsg('系統尚未設定完成（尚未貼上 Apps Script 網址），請聯絡工作室協助處理。', 'error');
       return;
     }
-
     const data = {
+      token: CONFIG.API_TOKEN,
       name: document.getElementById('name').value.trim(),
       gender: document.getElementById('gender').value,
       birthday: document.getElementById('birthday').value,
@@ -373,10 +346,8 @@
       last5: last5,
       emergencyContact: document.getElementById('ecName').value.trim() + '（' + document.getElementById('ecRelation').value.trim() + '）'
     };
-
     submitBtn.disabled = true;
     submitBtn.textContent = '送出中...';
-
     fetch(CONFIG.SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -396,7 +367,6 @@
       showMsg('送出失敗，請檢查網路連線後再試一次；若持續發生，麻煩截圖畫面聯絡工作室。', 'error');
     });
   });
-
   closeModalBtn.addEventListener('click', function(){
     overlay.classList.remove('show');
   });
