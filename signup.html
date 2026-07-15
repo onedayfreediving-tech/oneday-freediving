@@ -249,10 +249,10 @@
     <div class="msg" id="formMsg"></div>
   </form>
 </div>
-<div class="overlay" id="successOverlay">
+<div class="overlay" id="paymentOverlay">
   <div class="modal">
     <h2>✓ 報名資料已送出</h2>
-    <p class="small">請在 24 小時內完成付款，並點擊下方按鈕通知我們，我們會盡快為您確認名額。</p>
+    <p class="small">請在 24 小時內完成付款，付款完成後點擊下方按鈕繼續。</p>
     <div class="pay-amount">
       應付金額
       <b id="payAmount">NT$ 0</b>
@@ -270,22 +270,25 @@
       ③ 選擇「轉帳」，輸入應付金額<br>
       ④ 選擇用 LINE Pay 付款送出
     </div>
-    <a class="modal-btn line" id="lineBtn" href="#" target="_blank" rel="noopener">我已完成付款，通知我們</a>
-    <div class="bank-box" id="desktopLineBox" style="display:none;">
-      <div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">
-        偵測到您正在使用電腦瀏覽器，LINE 無法直接跳轉開啟對話（僅手機版 LINE App 支援），請依下方步驟通知我們：
-      </div>
-      <div id="lineStep1">
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:6px;">① 加入官方帳號好友：</div>
-        <b id="lineIdText" style="font-size:15px;">@833nezny</b>
-        <button type="button" class="modal-btn line" id="copyLineIdBtn" style="margin-top:8px;padding:9px;font-size:13px;">複製官方帳號 ID</button>
-        <a class="modal-btn line" id="lineAddFriendBtn" href="#" target="_blank" rel="noopener" style="margin-top:8px;padding:9px;font-size:13px;">開啟官方帳號加好友頁面 →</a>
-        <button type="button" class="modal-btn close" id="lineStep1NextBtn" style="margin-top:4px;padding:9px;font-size:13px;">已加好友，下一步</button>
-      </div>
-      <div id="lineStep2" style="display:none;">
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:6px;">② 貼上以下通知內容傳送給我們：</div>
+    <button type="button" class="modal-btn line" id="paymentNextBtn">轉帳完成，下一步</button>
+    <button type="button" class="modal-btn close" id="closePaymentBtn">關閉</button>
+  </div>
+</div>
+<div class="overlay" id="notifyOverlay">
+  <div class="modal">
+    <h2>通知我們付款完成</h2>
+    <p class="small">請通知我們您已完成付款，我們會盡快為您確認名額。</p>
+    <a class="modal-btn line" id="lineBtn" href="#" target="_blank" rel="noopener" style="display:none;">我已完成付款，通知我們</a>
+    <div id="desktopNotifyBox" style="display:none;">
+      <div class="bank-box" style="text-align:left;">
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">
+          偵測到您正在使用電腦瀏覽器，LINE 無法直接跳轉開啟對話（僅手機版 LINE App 支援），請依下方步驟通知我們：
+        </div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:6px;">① 複製以下通知內容：</div>
         <textarea id="lineMessageText" readonly style="width:100%;min-height:100px;background:var(--bg-field);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
         <button type="button" class="modal-btn line" id="copyLineMsgBtn" style="margin-top:8px;padding:9px;font-size:13px;">複製通知內容</button>
+        <div style="color:var(--text-dim);font-size:12px;margin:14px 0 6px;">② 加入官方帳號好友，貼上剛剛複製的內容傳送給我們：</div>
+        <a class="modal-btn line" id="lineAddFriendBtn" href="#" target="_blank" rel="noopener" style="padding:9px;font-size:13px;">開啟官方帳號加好友頁面 →</a>
       </div>
     </div>
     <button type="button" class="modal-btn close" id="closeModalBtn">關閉</button>
@@ -309,18 +312,19 @@
   const form = document.getElementById('signupForm');
   const submitBtn = document.getElementById('submitBtn');
   const formMsg = document.getElementById('formMsg');
-  const overlay = document.getElementById('successOverlay');
+  const paymentOverlay = document.getElementById('paymentOverlay');
+  const notifyOverlay = document.getElementById('notifyOverlay');
+  const paymentNextBtn = document.getElementById('paymentNextBtn');
+  const closePaymentBtn = document.getElementById('closePaymentBtn');
   const lineBtn = document.getElementById('lineBtn');
-  const desktopLineBox = document.getElementById('desktopLineBox');
-  const lineStep1 = document.getElementById('lineStep1');
-  const lineStep2 = document.getElementById('lineStep2');
-  const lineStep1NextBtn = document.getElementById('lineStep1NextBtn');
+  const desktopNotifyBox = document.getElementById('desktopNotifyBox');
   const lineAddFriendBtn = document.getElementById('lineAddFriendBtn');
   const lineMessageText = document.getElementById('lineMessageText');
-  const copyLineIdBtn = document.getElementById('copyLineIdBtn');
   const copyLineMsgBtn = document.getElementById('copyLineMsgBtn');
   const closeModalBtn = document.getElementById('closeModalBtn');
   const payAmountEl = document.getElementById('payAmount');
+  // 送出成功後暫存這筆報名資料，等使用者點「轉帳完成，下一步」時才用來組 LINE 連結／通知文字
+  let lastSubmitData = null;
   // 電腦版「開啟官方帳號加好友頁面」按鈕的連結網址，只需設定一次
   lineAddFriendBtn.href = CONFIG.LINE_ADD_FRIEND_URL;
   function showMsg(text, type){
@@ -371,16 +375,26 @@
       done(ok);
     }
   }
-  copyLineIdBtn.addEventListener('click', function(){
-    copyText_(CONFIG.LINE_OA_ID, copyLineIdBtn, '複製官方帳號 ID');
-  });
   copyLineMsgBtn.addEventListener('click', function(){
     copyText_(lineMessageText.value, copyLineMsgBtn, '複製通知內容');
   });
-  // 電腦版通知分成兩步驟顯示，避免一次跳出太長的內容：先加好友，點「已加好友，下一步」才顯示複製通知內容那一段
-  lineStep1NextBtn.addEventListener('click', function(){
-    lineStep1.style.display = 'none';
-    lineStep2.style.display = 'block';
+  // 拆成兩個彈跳視窗：第一個顯示付款資訊，點「轉帳完成，下一步」才關掉第一個、開第二個通知視窗
+  paymentNextBtn.addEventListener('click', function(){
+    paymentOverlay.classList.remove('show');
+    if (!lastSubmitData) { return; }
+    if (isMobileDevice_()) {
+      lineBtn.style.display = '';
+      lineBtn.href = buildLineUrl(lastSubmitData);
+      desktopNotifyBox.style.display = 'none';
+    } else {
+      lineBtn.style.display = 'none';
+      lineMessageText.value = buildLineMessage_(lastSubmitData);
+      desktopNotifyBox.style.display = 'block';
+    }
+    notifyOverlay.classList.add('show');
+  });
+  closePaymentBtn.addEventListener('click', function(){
+    paymentOverlay.classList.remove('show');
   });
   form.addEventListener('submit', function(e){
     e.preventDefault();
@@ -425,19 +439,9 @@
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(data)
     }).then(function(){
+      lastSubmitData = data;
       payAmountEl.textContent = formatCurrency(data.amount);
-      if (isMobileDevice_()) {
-        lineBtn.style.display = '';
-        lineBtn.href = buildLineUrl(data);
-        desktopLineBox.style.display = 'none';
-      } else {
-        lineBtn.style.display = 'none';
-        lineMessageText.value = buildLineMessage_(data);
-        lineStep1.style.display = '';
-        lineStep2.style.display = 'none';
-        desktopLineBox.style.display = 'block';
-      }
-      overlay.classList.add('show');
+      paymentOverlay.classList.add('show');
       form.reset();
       submitBtn.disabled = false;
       submitBtn.textContent = '送出報名';
@@ -449,7 +453,7 @@
     });
   });
   closeModalBtn.addEventListener('click', function(){
-    overlay.classList.remove('show');
+    notifyOverlay.classList.remove('show');
   });
 </script>
 </body>
