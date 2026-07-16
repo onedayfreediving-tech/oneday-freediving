@@ -209,6 +209,18 @@
       </select>
       <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">請依「預約行事曆」上該天顯示的時段選擇，若是線上課程請選「不限時段」。</div>
     </div>
+    <div class="field" id="customDaysField" style="display:none;">
+      <label>報名天數<span class="req">*</span></label>
+      <select id="customDaysCount">
+        <option value="1">1 天（只有上面這一天）</option>
+        <option value="2">2 天</option>
+        <option value="3">3 天</option>
+        <option value="4">4 天</option>
+        <option value="5">5 天</option>
+      </select>
+      <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">如果是連續報名好幾天、且每天時段不一定相同（例如第一天上午、第二天下午），請選擇實際天數，上面「課程日期／報名時段」算第 1 天，下面會出現第 2 天以後的日期／時段欄位。</div>
+    </div>
+    <div id="extraCustomDaysContainer"></div>
     <div class="field">
       <label>報名人數<span class="req">*</span></label>
       <select id="headcount" required>
@@ -453,8 +465,55 @@
       locationSelect.required = true;
     }
   }
-  courseSelect.addEventListener('change', updateLocationRequirement_);
+  // 2026-07-16 新增：訓練課程／導潛支援「連續報名好幾天、但每天時段不一定相同」。
+  // 選這兩種課程時會多出「報名天數」選單，選 2 天以上會動態長出「第 2 天日期／時段」...
+  // 等欄位，讓客人針對每一天分別選日期跟時段（跟 AIDA2/3/4 假設每天同一時段的邏輯不同，
+  // 那個是後端自動處理，不需要前端額外欄位）。
+  const MULTI_DAY_CUSTOM_COURSES = ['訓練課程', '導潛'];
+  const customDaysField = document.getElementById('customDaysField');
+  const customDaysCountSelect = document.getElementById('customDaysCount');
+  const extraCustomDaysContainer = document.getElementById('extraCustomDaysContainer');
+
+  function renderExtraCustomDays_(){
+    const n = parseInt(customDaysCountSelect.value, 10) || 1;
+    extraCustomDaysContainer.innerHTML = '';
+    for (let day = 2; day <= n; day++) {
+      const row = document.createElement('div');
+      row.className = 'row2';
+      row.innerHTML =
+        '<div class="field">' +
+          '<label>第 ' + day + ' 天 日期<span class="req">*</span></label>' +
+          '<input type="date" class="extraDayDate" data-day="' + day + '" required>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>第 ' + day + ' 天 時段<span class="req">*</span></label>' +
+          '<select class="extraDayPeriod" data-day="' + day + '" required>' +
+            '<option value="" disabled selected>請選擇時段</option>' +
+            '<option value="上午">上午</option>' +
+            '<option value="下午">下午</option>' +
+          '</select>' +
+        '</div>';
+      extraCustomDaysContainer.appendChild(row);
+    }
+  }
+
+  function updateCustomDaysVisibility_(){
+    if (MULTI_DAY_CUSTOM_COURSES.indexOf(courseSelect.value) !== -1) {
+      customDaysField.style.display = '';
+    } else {
+      customDaysField.style.display = 'none';
+      customDaysCountSelect.value = '1';
+      extraCustomDaysContainer.innerHTML = '';
+    }
+  }
+
+  customDaysCountSelect.addEventListener('change', renderExtraCustomDays_);
+  courseSelect.addEventListener('change', function(){
+    updateLocationRequirement_();
+    updateCustomDaysVisibility_();
+  });
   updateLocationRequirement_();
+  updateCustomDaysVisibility_();
 
   // 2026-07-16 新增：每次送出報名表單時產生一組獨立的「報名編號」，
   // 送出報名跟之後「轉帳完成」這兩次請求都會帶著同一組編號，讓後端可以對應回同一筆資料
@@ -566,6 +625,27 @@
       showMsg('系統尚未設定完成（尚未貼上 Apps Script 網址），請聯絡工作室協助處理。', 'error');
       return;
     }
+    // 2026-07-16 新增：訓練課程／導潛如果選了「報名天數」大於 1，組出 customDays 陣列
+    // （第 1 天用原本的課程日期／報名時段，第 2 天以後用動態長出的欄位）一起送給後端。
+    let customDaysPayload = null;
+    if (MULTI_DAY_CUSTOM_COURSES.indexOf(document.getElementById('course').value) !== -1) {
+      const dayCount = parseInt(customDaysCountSelect.value, 10) || 1;
+      customDaysPayload = [{
+        date: document.getElementById('courseDate').value,
+        period: document.getElementById('period').value
+      }];
+      if (dayCount > 1) {
+        const extraDateEls = document.querySelectorAll('.extraDayDate');
+        const extraPeriodEls = document.querySelectorAll('.extraDayPeriod');
+        for (let i = 0; i < extraDateEls.length; i++) {
+          customDaysPayload.push({
+            date: extraDateEls[i].value,
+            period: extraPeriodEls[i].value
+          });
+        }
+      }
+    }
+
     const data = {
       token: CONFIG.API_TOKEN,
       regId: generateRegId_(),
@@ -576,6 +656,7 @@
       courseDate: document.getElementById('courseDate').value,
       location: document.getElementById('location').value.trim(),
       period: document.getElementById('period').value,
+      customDays: customDaysPayload,
       headcount: headcount,
       amount: document.getElementById('amount').value,
       last5: document.getElementById('last5').value.trim(),
