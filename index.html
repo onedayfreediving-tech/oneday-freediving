@@ -117,6 +117,15 @@
             border-radius: 8px;
             padding: 10px 5px;
             min-width: 100px;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .info-item:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(56, 189, 248, 0.08);
         }
         .info-label {
             font-size: 12px;
@@ -334,12 +343,12 @@
             <div class="scroll-hint">往右滑看更多 ➔</div>
         </div>
         <div class="info-grid">
-            <div class="info-item"><div class="info-label">初階課程</div><div class="info-value">3 天</div></div>
-            <div class="info-item"><div class="info-label">進階/高階</div><div class="info-value">4 天</div></div>
-            <div class="info-item"><div class="info-label">海豚體驗班</div><div class="info-value">半 天</div></div>
-            <div class="info-item"><div class="info-label">導潛</div><div class="info-value">2 小時</div></div>
-            <div class="info-item"><div class="info-label">訓練</div><div class="info-value">2 小時</div></div>
-            <div class="info-item"><div class="info-label">團練</div><div class="info-value">2 小時</div></div>
+            <a class="info-item consult-link" data-topic="初階課程" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">初階課程</div><div class="info-value">3 天</div></a>
+            <a class="info-item consult-link" data-topic="進階/高階課程" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">進階/高階</div><div class="info-value">4 天</div></a>
+            <a class="info-item consult-link" data-topic="海豚體驗班" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">海豚體驗班</div><div class="info-value">半 天</div></a>
+            <a class="info-item consult-link" data-topic="導潛" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">導潛</div><div class="info-value">2 小時</div></a>
+            <a class="info-item consult-link" data-topic="訓練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">訓練</div><div class="info-value">2 小時</div></a>
+            <a class="info-item consult-link" data-topic="團練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">團練</div><div class="info-value">2 小時</div></a>
         </div>
     </div>
     <div class="calendar-container">
@@ -384,6 +393,26 @@
                 : `我想預約 ${dateLabel} 行程`;
             return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
         }
+
+        // 2026-07-16 新增：「課程與行程時間說明」面板（初階課程/進階高階/海豚體驗班/導潛/訓練/團練）
+        // 點擊後直接連到 LINE 官方帳號並自動帶入該項目的諮詢文字，客人只要按送出即可。
+        // 邏輯跟 buildBookingUrl_ 一樣：手機瀏覽器才帶得動自動訊息，電腦瀏覽器維持原本固定連結。
+        function buildInquiryUrl_(topicLabel) {
+            if (!isMobileDevice_()) {
+                return BOOKING_LINE_URL;
+            }
+            const message = `我想諮詢「${topicLabel}」的相關資訊`;
+            return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
+        }
+
+        // 頁面載入時，把每個課程說明卡片的連結網址換成上面組好的諮詢連結
+        // （這幾張卡片是寫死在 HTML 裡的，不像日曆格子是用 JS 動態產生的，所以要另外初始化一次）。
+        function initInfoPanelLinks_() {
+            document.querySelectorAll('.consult-link').forEach(function (el) {
+                el.href = buildInquiryUrl_(el.dataset.topic || '');
+            });
+        }
+        initInfoPanelLinks_();
 
         let currentDate = new Date(2026, 6, 1);
         let sheetData = [];
