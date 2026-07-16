@@ -49,7 +49,7 @@
   .field{margin-bottom:18px;}
   label{display:block;font-size:14px;color:var(--text-dim);margin-bottom:6px;}
   label .req{color:var(--danger);margin-left:2px;}
-  input[type=text], input[type=date], input[type=number], select{
+  input[type=text], input[type=date], input[type=number], input[type=tel], select{
     width:100%;
     background:var(--bg-field);
     border:1px solid var(--border);
@@ -67,6 +67,18 @@
     padding-right:36px;
   }
   input:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.15);}
+  /* 2026-07-16 新增：欄位格式驗證沒過時的紅框樣式，跟下方小字錯誤提示 */
+  input.field-invalid, select.field-invalid{
+    border-color:var(--danger) !important;
+    box-shadow:0 0 0 3px rgba(255,107,107,.15) !important;
+  }
+  .field-error-text{
+    display:none;
+    color:var(--danger);
+    font-size:12px;
+    margin-top:6px;
+  }
+  .field-error-text.show{display:block;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   @media (max-width:520px){.row2{grid-template-columns:1fr;}}
   .medical{
@@ -141,6 +153,7 @@
     <div class="field">
       <label>真實姓名<span class="req">*</span></label>
       <input type="text" id="name" required>
+      <div class="field-error-text" id="nameError"></div>
     </div>
     <div class="row2">
       <div class="field">
@@ -167,7 +180,7 @@
         <option value="AIDA4 證照（四天）">AIDA4 證照（四天）</option>
         <option value="訓練課程">訓練課程</option>
         <option value="導潛">導潛</option>
-        <option value="線上平壓課">線上平壓課</option>
+        <option value="線上課程">線上課程</option>
       </select>
     </div>
     <div class="row2">
@@ -175,7 +188,7 @@
         <label>課程日期<span class="req">*</span></label>
         <input type="date" id="courseDate" required>
       </div>
-      <div class="field">
+      <div class="field" id="locationField">
         <label>上課地點<span class="req">*</span></label>
         <select id="location" required>
           <option value="" disabled selected>請選擇地點</option>
@@ -194,7 +207,7 @@
         <option value="下午">下午</option>
         <option value="不限時段（線上課程）">不限時段（線上課程）</option>
       </select>
-      <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">請依「預約行事曆」上該天顯示的時段選擇，若是線上平壓課請選「不限時段」。</div>
+      <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">請依「預約行事曆」上該天顯示的時段選擇，若是線上課程請選「不限時段」。</div>
     </div>
     <div class="field">
       <label>報名人數<span class="req">*</span></label>
@@ -222,12 +235,14 @@
       <div class="field">
         <label>匯款後五碼<span class="req">*</span></label>
         <input type="text" id="last5" maxlength="5" pattern="\d{5}" inputmode="numeric" placeholder="12345" required>
+        <div class="field-error-text" id="last5Error"></div>
       </div>
     </div>
     <div class="row2">
       <div class="field">
         <label>緊急聯絡人姓名<span class="req">*</span></label>
         <input type="text" id="ecName" required>
+        <div class="field-error-text" id="ecNameError"></div>
       </div>
       <div class="field">
         <label>與緊急聯絡人關係<span class="req">*</span></label>
@@ -235,14 +250,35 @@
       </div>
     </div>
     <div class="field">
-      <label style="margin-bottom:8px;">醫療聲明<span class="req">*</span></label>
+      <label>緊急聯絡人電話<span class="req">*</span></label>
+      <input type="tel" id="ecPhone" inputmode="numeric" placeholder="例如：0912345678" required>
+      <div class="field-error-text" id="ecPhoneError"></div>
+    </div>
+    <div class="field">
+      <label style="margin-bottom:8px;">健康聲明書<span class="req">*</span></label>
       <div class="medical">
-        此醫療聲明的目的是為了讓你在從事自由潛水訓練前找出需由醫師檢查的身體問題。問卷中勾選「是」不見得代表你無法從事自由潛水。選擇「是」表示身體有某些既存的健康問題，在自由潛水前需要尋求專業醫師的建議，避免影響潛水安全。若有勾選「是」，必須要請醫師在檢測後於問卷下方簽名，並表示未發現有任何不適合自由潛水的健康狀況。<br><br>
-        請依照你過去與現在的醫療紀錄誠實回答，內容涵蓋：<b>神經系統疾病、心血管疾病、肺部相關疾病、耳朵相關疾病、鼻竇相關疾病、氣喘、糖尿病相關、懷孕、自潛/水肺相關病史、長期服用藥物、一般醫療病史、新冠肺炎（COVID-19）相關症狀</b>等項目。若有任何不確定，請主動告知教練並勾選「是」。
+        本次自由潛水，為明確權益，三方合意訂立本書面，約定內容如下：<br><br>
+        <b>第一部份　健康聲明書</b><br>
+        ※重要說明<br><br>
+        自由潛水是在水底環境中進行的一項激烈運動，在特定情況下可能會提高受傷的風險。如果你的身體有特殊狀況，風險會明顯增加，但這些特殊狀況在其他激烈活動或運動中不見得會構成安全性要素。因此我們需要以下列問卷來了解你的體能狀態。<b>在未能解決這些身體狀況前就從事需要憋氣的潛水活動時，可能對你的健康造成危害，會危及你的健康以及與你一起從事此運動的所有人之安危。</b><br><br>
+        下列醫療問卷的用意是為了讓你在從事潛水訓練前找出需由醫師檢查的身體問題。<b>問卷提問中勾選「是」時，不見得會導致資格不符</b>，反而能找出可能影響潛水安全，且必須在從事自由潛水活動前尋求專業醫師諮詢已存在的健康問題。醫師必須在表格下方簽名表示並未發現任何不適合自由潛水的身體狀況；若有，請在「是」的欄位中打勾。<br><br>
+        <b>健康項目（請依照你過去與現在的醫療紀錄逐項誠實核對）：</b><br>
+        1. 神經方面病史：有癲癇、腦部手術、大腦血管動脈瘤、復發性昏厥或暈眩、嚴重偏頭痛等病史<br>
+        2. 心血管方面病史：有心臟病、高血壓、中風、心臟手術、心律不整等病史<br>
+        3. 肺部方面病史：有自發性氣胸、因受傷導致肺部萎縮、肺囊腫或肺氣囊腫、肺組織嚴重損傷等病史、或任何干擾呼吸能力的肺部問題<br>
+        4. 耳朵方面病史：有耳膜永久性穿孔、鼓膜破裂、永久性鼓膜管、單耳或雙耳聽力嚴重受損或重大耳朵手術等病史<br>
+        5. 鼻竇方面病史：鼻竇或鼻腔腫瘤、息肉或囊腫、重大鼻竇手術或持續性鼻竇感染等病史<br>
+        6. 氣喘方面病史：氣喘或氣喘發作史（含任何由運動引起的氣喘、焦慮、倦怠感，或需要藥物治療或需要吸入器來控制氣喘的狀況）<br>
+        7. 糖尿病史：特別是第一型糖尿病（自體免疫問題導致須依賴胰島素注射）或第二型糖尿病（後天胰島素阻抗與不足）。或有血糖不穩定反應、相關腎臟疾病、眼疾、心臟病或血管疾病史<br>
+        8. 懷孕：懷孕中或計畫懷孕<br>
+        9. 自由潛水/水肺潛水狀態：潛水事故史、潛水夫病（減壓症）、內耳氣壓傷減壓症<br>
+        10. 用藥史：任何需要定期服用的處方，或非處方藥物的治療<br>
+        11. 一般疾病問題：上列未提及，但可能影響水中環境安全之身體問題（如咳嗽、鼻塞等身體不適），或因身體、情緒壓力下可能影響判斷的情形<br><br>
+        我已誠實及正確填寫上列表格，也瞭解身體狀況與潛水安全之間的關聯性，並在此簽名確認。
       </div>
       <div class="checkbox-row">
         <input type="checkbox" id="medicalConfirm" required>
-        <span>我已閱讀並確認以上醫療聲明內容<span class="req">*</span></span>
+        <span>我已詳細閱讀並理解以上健康聲明書全文，確認我目前的身體狀況<b>「皆為健康、以上 11 項健康項目皆為『否』」</b>。若我對其中任一項目的答案其實是「是」，我了解不應直接透過本頁面完成線上報名，應改為主動聯繫工作室／教練，由專業人員評估或提出醫師證明後才能參與課程。<span class="req">*</span></span>
       </div>
     </div>
     <button type="submit" class="submit" id="submitBtn">送出報名</button>
@@ -335,6 +371,101 @@
     const n = Number(amount) || 0;
     return 'NT$ ' + n.toLocaleString('zh-TW');
   }
+
+  // ============================================================
+  // 2026-07-16 新增：欄位格式檢查（防止「聯絡人電話填中文」「姓名填數字」這類手滑錯誤）。
+  // 規則：
+  //   - 真實姓名：不可包含數字
+  //   - 緊急聯絡人姓名：只能是中英文字（不可含數字或任何符號）
+  //   - 緊急聯絡人電話：只能是數字（8～10 碼）
+  //   - 匯款後五碼：只能是數字，剛好 5 碼
+  // 不合格的欄位會標紅框、在欄位下方顯示提示文字，並且送出時自動捲動到「第一個」錯誤欄位。
+  // ============================================================
+  const FIELD_RULES = [
+    {
+      id: 'name',
+      check: function (v) { return v.trim().length > 0 && !/[0-9]/.test(v); },
+      msg: '姓名不可包含數字，請確認是否打錯。'
+    },
+    {
+      id: 'ecName',
+      check: function (v) { return /^[一-龥A-Za-z\s]+$/.test(v.trim()); },
+      msg: '聯絡人姓名只能填寫中文或英文字，不可包含數字或符號。'
+    },
+    {
+      id: 'ecPhone',
+      check: function (v) { return /^[0-9]{8,10}$/.test(v.trim()); },
+      msg: '聯絡人電話請填寫 8～10 碼數字，不可包含中文或符號。'
+    },
+    {
+      id: 'last5',
+      check: function (v) { return /^[0-9]{5}$/.test(v.trim()); },
+      msg: '匯款後五碼請填寫 5 碼數字。'
+    }
+  ];
+
+  function toggleFieldError_(el, hasError, msg){
+    const errEl = document.getElementById(el.id + 'Error');
+    if (hasError) {
+      el.classList.add('field-invalid');
+      if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
+    } else {
+      el.classList.remove('field-invalid');
+      if (errEl) { errEl.classList.remove('show'); }
+    }
+  }
+
+  // 檢查所有規則欄位，回傳「第一個」不合格的欄位 DOM 元素（全部合格則回傳 null）
+  function validateExtraFields_(){
+    let firstInvalidEl = null;
+    FIELD_RULES.forEach(function (rule) {
+      const el = document.getElementById(rule.id);
+      const valid = rule.check(el.value);
+      toggleFieldError_(el, !valid, rule.msg);
+      if (!valid && !firstInvalidEl) firstInvalidEl = el;
+    });
+    return firstInvalidEl;
+  }
+
+  // 使用者打字時即時清掉紅框提示，不用等到再次按送出才知道已經改對了
+  FIELD_RULES.forEach(function (rule) {
+    const el = document.getElementById(rule.id);
+    el.addEventListener('input', function () {
+      if (rule.check(el.value)) {
+        toggleFieldError_(el, false, '');
+      }
+    });
+  });
+  // ============================================================
+
+  // 2026-07-16 新增：課程選「線上課程」時，不需要選實體上課地點，把地點欄位藏起來、
+  // 順便取消 required，避免逼客人選一個跟線上課程無關的地點。切回其他課程時再恢復。
+  const courseSelect = document.getElementById('course');
+  const locationField = document.getElementById('locationField');
+  const locationSelect = document.getElementById('location');
+  function updateLocationRequirement_(){
+    if (courseSelect.value === '線上課程') {
+      locationField.style.display = 'none';
+      locationSelect.required = false;
+      locationSelect.value = '';
+    } else {
+      locationField.style.display = '';
+      locationSelect.required = true;
+    }
+  }
+  courseSelect.addEventListener('change', updateLocationRequirement_);
+  updateLocationRequirement_();
+
+  // 2026-07-16 新增：每次送出報名表單時產生一組獨立的「報名編號」，
+  // 送出報名跟之後「轉帳完成」這兩次請求都會帶著同一組編號，讓後端可以對應回同一筆資料
+  // （不用依賴讀取後端回應內容，因為目前送出報名用的 no-cors 模式讀不到後端真正回傳了什麼）。
+  function generateRegId_(){
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'reg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
   // ⚠️ 2026-07-15 新增：LINE 的「跳轉傳訊息」連結（oaMessage）官方文件明講只支援手機版 LINE App
   // （iOS / Android），電腦版 LINE 完全不支援，點了不會有反應。所以把訊息文字（buildLineMessage_）
   // 跟組合網址（buildLineUrl）拆開，手機版繼續用網址一鍵跳轉，電腦版改顯示文字讓客人自己複製貼上。
@@ -382,6 +513,21 @@
   paymentNextBtn.addEventListener('click', function(){
     paymentOverlay.classList.remove('show');
     if (!lastSubmitData) { return; }
+
+    // 2026-07-16 新增：客人按下「轉帳完成」才是真正扣行事曆名額的時機（而不是一開始送出表單
+    // 就扣），所以這裡要再送一次請求給後端，帶上 action: 'confirmPayment' 跟同一組報名編號。
+    // 這個請求採「送出去就不管結果」的方式：就算這次網路不穩、送失敗了，也不擋客人繼續完成
+    // 通知流程，同步失敗的狀況會反映在老闆試算表的「行事曆同步狀態」欄位讓老闆自己追蹤。
+    const confirmPayload = {};
+    for (const key in lastSubmitData) { confirmPayload[key] = lastSubmitData[key]; }
+    confirmPayload.action = 'confirmPayment';
+    fetch(CONFIG.SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(confirmPayload)
+    }).catch(function(){ /* 靜默失敗，理由同上 */ });
+
     if (isMobileDevice_()) {
       lineBtn.style.display = '';
       lineBtn.href = buildLineUrl(lastSubmitData);
@@ -403,9 +549,12 @@
       form.reportValidity();
       return;
     }
-    const last5 = document.getElementById('last5').value.trim();
-    if (!/^\d{5}$/.test(last5)) {
-      showMsg('匯款後五碼請填寫 5 碼數字。', 'error');
+    // 2026-07-16 新增：逐欄格式檢查，不合格就標紅框＋跳出提示＋自動捲動到第一個錯誤欄位
+    const firstInvalidEl = validateExtraFields_();
+    if (firstInvalidEl) {
+      showMsg('請確認畫面上標紅框的欄位，格式填寫有誤。', 'error');
+      firstInvalidEl.focus();
+      firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     const headcount = parseInt(document.getElementById('headcount').value, 10);
@@ -419,6 +568,7 @@
     }
     const data = {
       token: CONFIG.API_TOKEN,
+      regId: generateRegId_(),
       name: document.getElementById('name').value.trim(),
       gender: document.getElementById('gender').value,
       birthday: document.getElementById('birthday').value,
@@ -428,8 +578,10 @@
       period: document.getElementById('period').value,
       headcount: headcount,
       amount: document.getElementById('amount').value,
-      last5: last5,
-      emergencyContact: document.getElementById('ecName').value.trim() + '（' + document.getElementById('ecRelation').value.trim() + '）'
+      last5: document.getElementById('last5').value.trim(),
+      emergencyContact: document.getElementById('ecName').value.trim() + '（' + document.getElementById('ecRelation').value.trim() + '）',
+      emergencyPhone: document.getElementById('ecPhone').value.trim(),
+      medicalConfirmed: document.getElementById('medicalConfirm').checked
     };
     submitBtn.disabled = true;
     submitBtn.textContent = '送出中...';
