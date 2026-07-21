@@ -621,9 +621,29 @@
   // ⚠️ 2026-07-15 新增：LINE 的「跳轉傳訊息」連結（oaMessage）官方文件明講只支援手機版 LINE App
   // （iOS / Android），電腦版 LINE 完全不支援，點了不會有反應。所以把訊息文字（buildLineMessage_）
   // 跟組合網址（buildLineUrl）拆開，手機版繼續用網址一鍵跳轉，電腦版改顯示文字讓客人自己複製貼上。
+  // 2026-07-21 新增：把課程名稱統一轉成「精準自由潛水」的字樣，專門用在
+  // 「要送出去給客人看」的報名確認訊息上，不會去改動真正拿去跟後端白名單
+  // 比對的原始課程值，避免影響報名資料寫入邏輯——單純是「文字讀起來更精準」的美化。
+  //   1. 名稱裡已經有「自由潛水」了 → 不動，原樣傳回。
+  //   2. AIDA 開頭的證照名稱（例如「AIDA4 證照（四天）」）→ 在 AIDA 數字後面
+  //      補上「自由潛水」，變成「AIDA4 自由潛水證照（四天）」。
+  //   3. 名稱裡有「潛水」兩個字 → 直接補成「自由潛水」開頭的字樣。
+  //   4. 其他情況（訓練課程、導潛、線上課程...等沒有「潛水」字樣的名稱）→
+  //      直接在最前面加上「自由潛水」，變成「自由潛水訓練課程」「自由潛水導潛」。
+  function toPreciseFreedivingLabel_(label){
+    if (!label) return label;
+    if (label.includes('自由潛水')) return label;
+    if (/^AIDA\d+/.test(label)) {
+      return label.replace(/^(AIDA\d+)(\s*)/, '$1 自由潛水');
+    }
+    if (label.includes('潛水')) {
+      return label.replace('潛水', '自由潛水');
+    }
+    return '自由潛水' + label;
+  }
   function buildLineMessage_(data){
     return '報名確認\n姓名：' + data.name +
-      '\n課程：' + data.course +
+      '\n課程：' + toPreciseFreedivingLabel_(data.course) +
       '\n日期／時段：' + data.courseDate + ' ' + data.period +
       '\n人數：' + data.headcount +
       '\n應付金額：' + formatCurrency(data.amount) +
