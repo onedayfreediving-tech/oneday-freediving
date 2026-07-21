@@ -455,16 +455,16 @@
     <a href="https://www.onedayfreediving.com" class="back-home-btn">← 返回官網</a>
     <div class="info-panel">
         <div class="info-header-row">
-            <div class="info-title">⏱️ 課程與行程時間說明</div>
+            <div class="info-title">⏱️ 自由潛水課程與行程時間說明</div>
             <div class="scroll-hint">往右滑看更多 ➔</div>
         </div>
         <div class="info-grid">
             <a class="info-item consult-link" data-topic="初階課程" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">初階課程</div><div class="info-value">3 天</div><div class="info-hint">點選課程，預約第一天</div></a>
             <a class="info-item consult-link" data-topic="進階/高階課程" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">進階/高階</div><div class="info-value">4 天</div><div class="info-hint">點選課程，預約第一天</div></a>
             <a class="info-item consult-link" data-topic="海豚體驗班" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">海豚體驗班</div><div class="info-value">半 天</div></a>
-            <a class="info-item consult-link" data-topic="導潛" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">導潛</div><div class="info-value">2 小時</div></a>
-            <a class="info-item consult-link" data-topic="訓練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">訓練</div><div class="info-value">2 小時</div></a>
-            <a class="info-item consult-link" data-topic="團練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">團練</div><div class="info-value">2 小時</div></a>
+            <a class="info-item consult-link" data-topic="導潛" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">導潛</div><div class="info-value">2 小時</div><div class="info-hint">自由潛水</div></a>
+            <a class="info-item consult-link" data-topic="訓練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">訓練</div><div class="info-value">2 小時</div><div class="info-hint">自由潛水</div></a>
+            <a class="info-item consult-link" data-topic="團練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">團練</div><div class="info-value">2 小時</div><div class="info-hint">自由潛水</div></a>
         </div>
         <a class="info-note-link consult-link" data-message="您好，我想請教一些問題，麻煩客服協助解答，謝謝！" href="https://lin.ee/BbKIko1" target="_blank">💬 以上項目皆可點擊，直接連結官方帳號詢問客服</a>
     </div>
@@ -519,6 +519,28 @@
             return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
         }
 
+        // 2026-07-21 新增：把課程／行程名稱統一轉成「精準自由潛水」的字樣，
+        // 專門用在「要送出去給客人看」的訊息文字上（LINE 自動帶入訊息），
+        // 不會去改動真正拿去跟後端白名單比對、或畫在日曆格子上的原始資料值，
+        // 避免影響報名/預約的資料寫入邏輯——單純是「文字讀起來更精準」的美化。
+        //   1. 名稱裡已經有「自由潛水」了 → 不動，原樣傳回。
+        //   2. AIDA 開頭的證照名稱（例如「AIDA4 證照（四天）」）→ 在 AIDA 數字後面
+        //      補上「自由潛水」，變成「AIDA4 自由潛水證照（四天）」。
+        //   3. 名稱裡有「潛水」兩個字（例如「潛水活動」「潛水旅遊」）→ 直接補成「自由潛水活動」「自由潛水旅遊」。
+        //   4. 其他情況（導潛、訓練、團練、線上課程...等沒有「潛水」字樣的名稱）→
+        //      直接在最前面加上「自由潛水」，變成「自由潛水導潛」「自由潛水訓練」。
+        function toPreciseFreedivingLabel_(label) {
+            if (!label) return label;
+            if (label.includes('自由潛水')) return label;
+            if (/^AIDA\d+/.test(label)) {
+                return label.replace(/^(AIDA\d+)(\s*)/, '$1 自由潛水');
+            }
+            if (label.includes('潛水')) {
+                return label.replace('潛水', '自由潛水');
+            }
+            return '自由潛水' + label;
+        }
+
         // 組出點擊「可預約」或某個時段後要跳轉的網址。
         // 手機瀏覽器：跳到 LINE 官方帳號聊天室，並自動帶入一句預約詢問文字，客人只要按送出。
         //   （如果客人還沒加這個官方帳號為好友，LINE 會先跳出「加好友」的提示，
@@ -529,8 +551,8 @@
                 return BOOKING_LINE_URL;
             }
             const message = detailText
-                ? `我想預約 ${dateLabel} 的 ${detailText} 行程`
-                : `我想預約 ${dateLabel} 行程`;
+                ? `我想預約 ${dateLabel} 的 ${detailText} 自由潛水行程`
+                : `我想預約 ${dateLabel} 自由潛水行程`;
             return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
         }
 
@@ -541,7 +563,7 @@
             if (!isMobileDevice_()) {
                 return BOOKING_LINE_URL;
             }
-            const message = `我想諮詢「${topicLabel}」的相關資訊`;
+            const message = `我想諮詢「${toPreciseFreedivingLabel_(topicLabel)}」的相關資訊`;
             return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
         }
 
@@ -620,7 +642,7 @@
                         if (cells[i] && cells[i].v !== null && cells[i].v !== '') {
                             let cellText = cells[i].f ? cells[i].f : String(cells[i].v);
                             if (!isNaN(cellText) || cellText.trim().toLowerCase() === 'v') {
-                                project = headers[i] || '潛水行程';
+                                project = headers[i] || '自由潛水行程';
                             } else {
                                 project = cellText;
                             }
@@ -628,7 +650,7 @@
                         }
                     }
                     if (!project && isTrip) {
-                        project = '潛水旅遊';
+                        project = '自由潛水旅遊';
                     }
                     if (!project && !timeStr) return null;
                     return {
@@ -636,7 +658,7 @@
                         time: timeStr || '全天',
                         period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
                         capacity: cells[3] ? (cells[3].v || 0) : 0,
-                        project: project || '潛水活動',
+                        project: project || '自由潛水活動',
                         location: specificLocation,
                         available: cells[availableIndex] ? (cells[availableIndex].v || 0) : 0
                     };
@@ -652,7 +674,7 @@
         }
         // 動態解析地點與特殊行程
         function getProjectTitleHTML(projectName, rowLocation) {
-            if (!projectName) return '潛水行程';
+            if (!projectName) return '自由潛水行程';
 
             const locationToUse = (rowLocation || '').trim();
             // 1. 如果「地點」欄位裡包含旅遊、潛旅、出國等關鍵字
@@ -754,7 +776,7 @@
                 // 2026-07-21：時段本身就是「全天」時（AIDA1~4 證照／體驗課程），不要跟 displayTime
                 // 的「全天」重複組成「全天 全天」，直接只顯示一次「全天」就好。
                 const timeLabel = (slot.period === '全天') ? '全天' : (slot.period ? `${slot.period} ${displayTime}` : displayTime);
-                const plainProjectText = `${slot.location ? slot.location + ' ' : ''}${slot.project || ''}（${timeLabel}）`.trim();
+                const plainProjectText = `${slot.location ? slot.location + ' ' : ''}${slot.project ? toPreciseFreedivingLabel_(slot.project) : ''}（${timeLabel}）`.trim();
 
                 if (isFull) {
                     row.classList.add('full');
