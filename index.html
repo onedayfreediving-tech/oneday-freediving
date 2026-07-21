@@ -21,6 +21,8 @@
             --hengchun-bg: #ef4444;  /* 恆春：珊瑚紅 */
             --liuqiu-bg: #0284c7;    /* 小琉球：海洋藍 */
             --trip-bg: #a855f7;      /* 潛水旅遊：極光紫 */
+            --qianlifang-bg: #f59e0b; /* 潛立方：琥珀橘 */
+            --beiqu5m-bg: #14b8a6;    /* 北區5米池：青綠色 */
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -317,6 +319,8 @@
         .loc-tag.hengchun { background-color: var(--hengchun-bg); }
         .loc-tag.liuqiu { background-color: var(--liuqiu-bg); }
         .loc-tag.special-trip { background-color: var(--trip-bg); box-shadow: 0 0 4px rgba(168, 85, 247, 0.5); }
+        .loc-tag.qianlifang { background-color: var(--qianlifang-bg); }
+        .loc-tag.beiqu5m { background-color: var(--beiqu5m-bg); }
         .slot-badge.full {
             background-color: var(--disabled-color);
             border-color: transparent;
@@ -609,11 +613,23 @@
                 return `<span class="loc-tag liuqiu">琉球</span>${cleanedName || '行程'}`;
             }
 
+            if (locationToUse.includes('潛立方')) {
+                const cleanedName = projectName.replace('潛立方', '').trim();
+                return `<span class="loc-tag qianlifang">潛立方</span>${cleanedName || '行程'}`;
+            }
+
+            if (locationToUse.includes('北區5米池') || locationToUse.includes('北區5m池') || locationToUse.includes('5米池')) {
+                const cleanedName = projectName.replace('北區5米池', '').replace('北區5m池', '').replace('5米池', '').trim();
+                return `<span class="loc-tag beiqu5m">北區5米池</span>${cleanedName || '行程'}`;
+            }
+
             // 降級防呆：若地點沒寫，但專案名稱含有特定地點
             const projectToSearch = projectName.trim();
             if (projectToSearch.includes('台中')) return `<span class="loc-tag taichung">台中</span>${projectToSearch.replace('台中', '')}`;
             if (projectToSearch.includes('恆春')) return `<span class="loc-tag hengchun">恆春</span>${projectToSearch.replace('恆春', '')}`;
             if (projectToSearch.includes('琉球')) return `<span class="loc-tag liuqiu">琉球</span>${projectToSearch.replace('小琉球', '').replace('琉球', '')}`;
+            if (projectToSearch.includes('潛立方')) return `<span class="loc-tag qianlifang">潛立方</span>${projectToSearch.replace('潛立方', '')}`;
+            if (projectToSearch.includes('北區5米池') || projectToSearch.includes('5米池')) return `<span class="loc-tag beiqu5m">北區5米池</span>${projectToSearch.replace('北區5米池', '').replace('5米池', '')}`;
 
             return projectName;
         }
