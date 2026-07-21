@@ -1,749 +1,786 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONEDAY OCEAN LIFE 預約行事曆</title>
-    <style>
-        :root {
-            --bg-color: #0b1528;
-            --card-bg: #13223f;
-            --text-color: #f1f5f9;
-            --primary-color: #38bdf8;
-            --border-color: #233554;
-            --disabled-color: #1e293b;
-            --success-color: #10b981;
-            --link-color: #38bdf8;
-            --info-bg: #1e293b;
-
-            /* 各地點與特殊行程的顏色設定 */
-            --taichung-bg: #10b981;  /* 台中：翠綠色 */
-            --hengchun-bg: #ef4444;  /* 恆春：珊瑚紅 */
-            --liuqiu-bg: #0284c7;    /* 小琉球：海洋藍 */
-            --trip-bg: #a855f7;      /* 潛水旅遊：極光紫 */
-            --qianlifang-bg: #f59e0b; /* 潛立方：琥珀橘 */
-            --beiqu5m-bg: #14b8a6;    /* 北區5米池：青綠色 */
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        h1 {
-            color: var(--text-color);
-            margin-bottom: 5px;
-            font-size: 24px;
-            text-align: center;
-        }
-        .subtitle {
-            color: #94a3b8;
-            font-size: 13px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        /* 返回官網按鈕樣式 */
-        .back-home-btn {
-            display: inline-flex;
-            align-items: center;
-            background-color: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        .back-home-btn:hover {
-            background-color: var(--primary-color);
-            color: var(--bg-color);
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-        }
-        /* 課程時間對照表面板 */
-        .info-panel {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 15px 20px;
-            width: 100%;
-            max-width: 950px;
-            margin-bottom: 25px;
-            box-sizing: border-box;
-        }
-        .info-header-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            margin-bottom: 12px;
-        }
-        .info-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--primary-color);
-            letter-spacing: 1px;
-        }
-        .scroll-hint {
-            display: none;
-            position: absolute;
-            right: 0;
-            font-size: 11px;
-            color: #64748b;
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 2px 8px;
-            border-radius: 20px;
-            animation: pulse 1.8s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; color: var(--primary-color); }
-            100% { opacity: 0.5; }
-        }
-        .info-grid {
-            display: grid;
-            /* 2026-07-16 調整：改成自動排欄（auto-fit：卡片數量變動時會自動平均撐滿整排，
-               不會像 auto-fill 那樣留空欄），之後不管卡片有幾張都不用再手動調欄位數。 */
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 10px;
-            text-align: center;
-        }
-        .info-item {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(35, 53, 84, 0.5);
-            border-radius: 8px;
-            padding: 10px 5px;
-            min-width: 100px;
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .info-item:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(56, 189, 248, 0.08);
-        }
-        /* 2026-07-16 新增：課程卡片下方的提醒注記文字，本身也可點擊連結客服 */
-        .info-note-link {
-            display: block;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 12px;
-            color: var(--primary-color);
-            text-decoration: none;
-            opacity: 0.85;
-        }
-        .info-note-link:hover {
-            text-decoration: underline;
-            opacity: 1;
-        }
-        /* 2026-07-16 新增：證照課程分段班諮詢——獨立醒目區塊樣式 */
-        .split-course-banner {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            width: 100%;
-            max-width: 950px;
-            box-sizing: border-box;
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.04));
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            border-radius: 10px;
-            padding: 14px 18px;
-            margin-bottom: 25px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .split-course-banner:hover {
-            border-color: var(--primary-color);
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.06));
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-        }
-        .split-course-icon {
-            font-size: 26px;
-            flex-shrink: 0;
-        }
-        .split-course-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 4px;
-        }
-        .split-course-desc {
-            font-size: 12px;
-            color: #cbd5e1;
-            line-height: 1.5;
-        }
-        @media (max-width: 768px) {
-            .split-course-banner { padding: 12px 14px; gap: 10px; }
-            .split-course-icon { font-size: 22px; }
-            .split-course-title { font-size: 13px; }
-            .split-course-desc { font-size: 11px; }
-        }
-        .info-label {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 4px;
-        }
-        .info-value {
-            font-size: 15px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        /* 日曆主容器 */
-        .calendar-container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 950px;
-            padding: 20px;
-            box-sizing: border-box;
-            margin-bottom: 20px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .month-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        .nav-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .nav-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
-        .day-cell {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            min-height: 110px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.2s;
-            background-color: rgba(255, 255, 255, 0.01);
-        }
-        .day-cell.today {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
-        }
-        .day-cell.other-month {
-            opacity: 0.3;
-        }
-        .day-number {
-            font-weight: bold;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-        .day-cell.today .day-number {
-            color: var(--primary-color);
-        }
-        .slots-container {
-            margin-top: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-grow: 1;
-            justify-content: flex-end;
-        }
-        .slot-badge {
-            background-color: rgba(56, 189, 248, 0.05);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            color: var(--text-color);
-            border-radius: 4px;
-            padding: 4px;
-            font-size: 11px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-        .slot-badge:hover {
-            background-color: var(--primary-color);
-            color: var(--bg-color);
-            border-color: var(--primary-color);
-        }
-        /* 🏷️ 地點與行程膠囊樣式 */
-        .loc-tag {
-            display: inline-block;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 1px 4px;
-            border-radius: 3px;
-            color: #ffffff;
-            margin-right: 4px;
-            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
-            white-space: nowrap;
-        }
-
-        .loc-tag.taichung { background-color: var(--taichung-bg); }
-        .loc-tag.hengchun { background-color: var(--hengchun-bg); }
-        .loc-tag.liuqiu { background-color: var(--liuqiu-bg); }
-        .loc-tag.special-trip { background-color: var(--trip-bg); box-shadow: 0 0 4px rgba(168, 85, 247, 0.5); }
-        .loc-tag.qianlifang { background-color: var(--qianlifang-bg); }
-        .loc-tag.beiqu5m { background-color: var(--beiqu5m-bg); }
-        .slot-badge.full {
-            background-color: var(--disabled-color);
-            border-color: transparent;
-            color: #64748b;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-        .slot-badge.empty-clickable {
-            background-color: rgba(56, 189, 248, 0.03);
-            border: 1px dashed rgba(56, 189, 248, 0.3);
-            color: var(--link-color);
-            text-align: center;
-            justify-content: center;
-            align-items: center;
-            font-weight: 500;
-        }
-        .slot-badge.empty-clickable:hover {
-            background-color: var(--link-color);
-            color: var(--bg-color);
-            border-color: var(--link-color);
-        }
-        .slot-meta {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            font-size: 10px;
-            opacity: 0.9;
-        }
-        .slot-title {
-            font-weight: bold;
-            text-align: left;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-        }
-        .loading-text {
-            text-align: center;
-            color: var(--primary-color);
-            padding: 20px;
-            font-size: 16px;
-        }
-        .footer-note {
-            color: #94a3b8;
-            font-size: 13px;
-            text-align: center;
-            margin-top: 5px;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-        /* 📱 手機與平板優化 */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .scroll-hint { display: inline-block; }
-            .info-panel { padding: 12px 15px; }
-            .info-grid {
-                display: flex; overflow-x: auto; gap: 10px; padding-bottom: 8px;
-                -webkit-overflow-scrolling: touch; justify-content: flex-start;
-            }
-            .info-grid::-webkit-scrollbar { height: 4px; }
-            .info-grid::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
-            .calendar-container { padding: 8px; }
-            .days-grid { gap: 4px; }
-            .day-cell { min-height: 95px; padding: 4px 2px; border-radius: 6px; }
-            .day-number { font-size: 11px; margin-bottom: 4px; padding-left: 2px; }
-            .slots-container { gap: 3px; }
-            .slot-badge { font-size: 10px; padding: 2px 3px; border-radius: 4px; flex-direction: column; align-items: stretch; gap: 1px; }
-            .slot-badge.empty-clickable { padding: 6px 0; font-size: 10px; }
-            .slot-title { font-size: 10px; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; justify-content: center; }
-            .loc-tag { font-size: 8px; padding: 0px 3px; margin-right: 2px; }
-            .slot-meta { font-size: 8px; line-height: 1; display: flex; justify-content: space-between; width: 100%; opacity: 0.8; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1px; margin-top: 1px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課程報名表｜One Day 自由潛水工作室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1528;
+    --bg-card:#101f38;
+    --bg-field:#0c1930;
+    --border:#1d3355;
+    --accent:#2dd4bf;
+    --accent-2:#38bdf8;
+    --text:#eaf2ff;
+    --text-dim:#8ea3c6;
+    --danger:#ff6b6b;
+    --ok:#34d399;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(circle at 50% -10%, #14294a 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Noto Sans TC', sans-serif;
+    min-height:100vh;
+    padding:24px 16px 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  header{text-align:center;margin-bottom:24px;}
+  .pixel{font-family:'Press Start 2P', 'Noto Sans TC', sans-serif;font-size:13px;color:var(--accent);letter-spacing:1px;}
+  h1{font-size:22px;margin:10px 0 6px;color:var(--text);}
+  .sub{color:var(--text-dim);font-size:14px;line-height:1.6;}
+  .calendar-link{
+    display:inline-block;margin-top:14px;padding:8px 18px;border:1px solid var(--accent);
+    border-radius:999px;color:var(--accent);text-decoration:none;font-size:13px;
+  }
+  .calendar-link:hover{background:rgba(45,212,191,.1);}
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px 20px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .field{margin-bottom:18px;}
+  label{display:block;font-size:14px;color:var(--text-dim);margin-bottom:6px;}
+  label .req{color:var(--danger);margin-left:2px;}
+  input[type=text], input[type=date], input[type=number], input[type=tel], select{
+    width:100%;
+    background:var(--bg-field);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    color:var(--text);
+    font-size:15px;
+    font-family:inherit;
+    appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M0 0l7 8 7-8z' fill='%238ea3c6'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:36px;
+  }
+  input:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.15);}
+  /* 2026-07-16 新增：欄位格式驗證沒過時的紅框樣式，跟下方小字錯誤提示 */
+  input.field-invalid, select.field-invalid{
+    border-color:var(--danger) !important;
+    box-shadow:0 0 0 3px rgba(255,107,107,.15) !important;
+  }
+  .field-error-text{
+    display:none;
+    color:var(--danger);
+    font-size:12px;
+    margin-top:6px;
+  }
+  .field-error-text.show{display:block;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){.row2{grid-template-columns:1fr;}}
+  .medical{
+    background:var(--bg-field);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    font-size:13px;
+    line-height:1.8;
+    color:var(--text-dim);
+    max-height:180px;
+    overflow-y:auto;
+    margin-bottom:14px;
+  }
+  .medical b{color:var(--text);}
+  .checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:22px;}
+  .checkbox-row input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:0 0 auto;}
+  .checkbox-row span{font-size:14px;color:var(--text);}
+  button.submit{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    color:#04121f;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    transition:opacity .2s;
+  }
+  button.submit:disabled{opacity:.6;cursor:not-allowed;}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:14px;display:none;}
+  .msg.error{display:block;background:rgba(255,107,107,.12);border:1px solid var(--danger);color:#ffb4b4;}
+  .msg.info{display:block;background:rgba(56,189,248,.12);border:1px solid var(--accent-2);color:#bfe9ff;}
+  .overlay{
+    position:fixed;inset:0;background:rgba(3,8,18,.75);
+    display:none;align-items:center;justify-content:center;padding:16px;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:16px;
+    max-width:420px;width:100%;padding:24px 20px;text-align:center;
+  }
+  .modal h2{margin:0 0 6px;font-size:18px;color:var(--ok);}
+  .modal p.small{color:var(--text-dim);font-size:13px;margin-bottom:16px;}
+  .pay-amount{
+    font-size:15px;color:var(--text-dim);margin-bottom:4px;
+  }
+  .pay-amount b{display:block;font-size:28px;color:var(--accent);margin-top:2px;}
+  .bank-box{
+    background:var(--bg-field);border:1px solid var(--border);border-radius:12px;
+    padding:14px;text-align:left;font-size:14px;line-height:2;margin-bottom:18px;
+  }
+  .bank-box b{color:var(--accent);}
+  .modal-btn{
+    display:block;width:100%;padding:13px;border-radius:10px;border:none;
+    font-size:15px;font-weight:700;margin-bottom:10px;cursor:pointer;text-decoration:none;
+  }
+  .modal-btn.line{background:#06C755;color:#fff;}
+  .modal-btn.close{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+</style>
 </head>
 <body>
-    <h1>自由潛水預約行事曆</h1>
-    <div class="subtitle">即時查看排班與剩餘名額，點擊即可直接導向 LINE 官方帳號進行預約</div>
-
-    <a href="https://www.onedayfreediving.com" class="back-home-btn">← 返回官網</a>
-    <div class="info-panel">
-        <div class="info-header-row">
-            <div class="info-title">⏱️ 課程與行程時間說明</div>
-            <div class="scroll-hint">往右滑看更多 ➔</div>
-        </div>
-        <div class="info-grid">
-            <a class="info-item consult-link" data-topic="初階課程" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">初階課程</div><div class="info-value">3 天</div></a>
-            <a class="info-item consult-link" data-topic="進階/高階課程" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">進階/高階</div><div class="info-value">4 天</div></a>
-            <a class="info-item consult-link" data-topic="海豚體驗班" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">海豚體驗班</div><div class="info-value">半 天</div></a>
-            <a class="info-item consult-link" data-topic="導潛" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">導潛</div><div class="info-value">2 小時</div></a>
-            <a class="info-item consult-link" data-topic="訓練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">訓練</div><div class="info-value">2 小時</div></a>
-            <a class="info-item consult-link" data-topic="團練" href="https://lin.ee/BbKIko1" target="_blank"><div class="info-label">團練</div><div class="info-value">2 小時</div></a>
-        </div>
-        <a class="info-note-link consult-link" data-message="您好，我想請教一些問題，麻煩客服協助解答，謝謝！" href="https://lin.ee/BbKIko1" target="_blank">💬 以上項目皆可點擊，直接連結官方帳號詢問客服</a>
+<div class="wrap">
+  <header>
+    <div class="pixel">ONE DAY FREEDIVE</div>
+    <h1>課程報名表</h1>
+    <p class="sub">填寫以下資料完成報名，送出後會提供付款帳號資訊，<br>並可一鍵傳送報名資訊到官方 LINE 帳號。</p>
+    <a class="calendar-link" href="https://onedayfreediving-tech.github.io/oneday-freediving/" target="_blank" rel="noopener">查看預約行事曆／可預約時段 →</a>
+  </header>
+  <form class="card" id="signupForm" novalidate>
+    <div class="field">
+      <label>真實姓名<span class="req">*</span></label>
+      <input type="text" id="name" required>
+      <div class="field-error-text" id="nameError"></div>
     </div>
-
-    <!-- 2026-07-16 新增：證照課程分段班諮詢獨立成一個醒目區塊（原本是課程卡片區的第 7 張，
-         但手機版卡片區是左右滑動的，藏在最後面容易被滑過去沒看到；這是很多人在問的熱門項目，
-         獨立出來後不用滑動就能直接看到，且說明文字也能寫更完整）。 -->
-    <a class="split-course-banner consult-link" data-message="您好，我想了解證照課程分段班（線上課＋實體課）的詳細資訊，麻煩客服協助說明，謝謝！" href="https://lin.ee/BbKIko1" target="_blank">
-        <div class="split-course-icon">🎓</div>
-        <div class="split-course-text">
-            <div class="split-course-title">證照課程分段班諮詢（線上課＋實體課）</div>
-            <div class="split-course-desc">沒辦法一次排開完整證照課程嗎？可以先上線上學科課程，再彈性約時間完成實體術科訓練，點擊直接洽詢客服 →</div>
-        </div>
-    </a>
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <button class="nav-btn" onclick="changeMonth(-1)">&lt;</button>
-            <div class="month-title" id="monthTitle">2026年 7月</div>
-            <button class="nav-btn" onclick="changeMonth(1)">&gt;</button>
-        </div>
-        <div class="weekdays">
-            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-        </div>
-        <div id="loading" class="loading-text">正在載入教練行程與預約名額...</div>
-        <div class="days-grid" id="daysGrid" style="display: none;"></div>
+    <div class="row2">
+      <div class="field">
+        <label>性別<span class="req">*</span></label>
+        <select id="gender" required>
+          <option value="" disabled selected>請選擇</option>
+          <option value="生理女">生理女</option>
+          <option value="生理男">生理男</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>生日<span class="req">*</span></label>
+        <input type="date" id="birthday" required>
+      </div>
     </div>
-    <div class="footer-note">* 若需要客製化時段，證照班分段上課請訊息官方帳號 *</div>
-    <script>
-        const SPREADSHEET_ID = '1airsLt1cE5XAoneMjfdQCGsOPcjxZ_ZZ-1rDU3EWtbg';
-        const BOOKING_LINE_URL = 'https://lin.ee/BbKIko1';
+    <div class="field">
+      <label>課程項目<span class="req">*</span></label>
+      <select id="course" required>
+        <option value="" disabled selected>請選擇課程</option>
+        <option value="AIDA1 海豚體驗課（半天）">AIDA1 海豚體驗課（半天）</option>
+        <option value="AIDA2 證照（三天）">AIDA2 證照（三天）</option>
+        <option value="AIDA3 證照（四天）">AIDA3 證照（四天）</option>
+        <option value="AIDA4 證照（四天）">AIDA4 證照（四天）</option>
+        <option value="訓練課程">訓練課程</option>
+        <option value="導潛">導潛</option>
+        <option value="線上課程">線上課程</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>課程日期<span class="req">*</span></label>
+        <input type="date" id="courseDate" required>
+      </div>
+      <div class="field" id="locationField">
+        <label>上課地點<span class="req">*</span></label>
+        <select id="location" required>
+          <option value="" disabled selected>請選擇地點</option>
+          <option value="台北">台北</option>
+          <option value="台中">台中</option>
+          <option value="恆春">恆春</option>
+          <option value="小琉球">小琉球</option>
+          <option value="潛立方">潛立方</option>
+          <option value="北區深水池">北區深水池</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" id="periodField">
+      <label>報名時段<span class="req">*</span></label>
+      <select id="period" required>
+        <option value="" disabled selected>請選擇時段</option>
+        <option value="上午">上午</option>
+        <option value="下午">下午</option>
+        <option value="不限時段（線上課程）">不限時段（線上課程）</option>
+      </select>
+      <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">請依「預約行事曆」上該天顯示的時段選擇，若是線上課程請選「不限時段」。</div>
+    </div>
+    <div class="field" id="customDaysField" style="display:none;">
+      <label>報名天數<span class="req">*</span></label>
+      <select id="customDaysCount">
+        <option value="1">1 天（只有上面這一天）</option>
+        <option value="2">2 天</option>
+        <option value="3">3 天</option>
+        <option value="4">4 天</option>
+        <option value="5">5 天</option>
+      </select>
+      <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">如果是連續報名好幾天、且每天時段不一定相同（例如第一天上午、第二天下午），請選擇實際天數，上面「課程日期／報名時段」算第 1 天，下面會出現第 2 天以後的日期／時段欄位。</div>
+    </div>
+    <div id="extraCustomDaysContainer"></div>
+    <div class="field">
+      <label>報名人數<span class="req">*</span></label>
+      <select id="headcount" required>
+        <option value="1" selected>1 位</option>
+        <option value="2">2 位</option>
+        <option value="3">3 位</option>
+        <option value="4">4 位</option>
+        <option value="5">5 位</option>
+        <option value="6">6 位</option>
+        <option value="7">7 位</option>
+        <option value="8">8 位</option>
+        <option value="9">9 位</option>
+        <option value="10">10 位</option>
+        <option value="11">11 位</option>
+        <option value="12">12 位</option>
+      </select>
+      <div style="color:var(--text-dim);font-size:12px;margin-top:6px;">若是幫朋友一起報名，請選實際總人數，系統會依人數自動扣對應名額（最多 12 位）。</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>匯款金額<span class="req">*</span></label>
+        <input type="number" id="amount" min="1" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label>匯款後五碼<span class="req">*</span></label>
+        <input type="text" id="last5" maxlength="5" pattern="\d{5}" inputmode="numeric" placeholder="12345" required>
+        <div class="field-error-text" id="last5Error"></div>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>緊急聯絡人姓名<span class="req">*</span></label>
+        <input type="text" id="ecName" required>
+        <div class="field-error-text" id="ecNameError"></div>
+      </div>
+      <div class="field">
+        <label>與緊急聯絡人關係<span class="req">*</span></label>
+        <input type="text" id="ecRelation" placeholder="例如：父親 / 配偶" required>
+      </div>
+    </div>
+    <div class="field">
+      <label>緊急聯絡人電話<span class="req">*</span></label>
+      <input type="tel" id="ecPhone" inputmode="numeric" placeholder="例如：0912345678" required>
+      <div class="field-error-text" id="ecPhoneError"></div>
+    </div>
+    <div class="field">
+      <label style="margin-bottom:8px;">健康聲明書與報名退費政策<span class="req">*</span></label>
+      <div class="medical">
+        本次自由潛水，為明確權益，三方合意訂立本書面，約定內容如下：<br><br>
+        <b>第一部份　健康聲明書</b><br>
+        ※重要說明<br><br>
+        自由潛水是在水底環境中進行的一項激烈運動，在特定情況下可能會提高受傷的風險。如果你的身體有特殊狀況，風險會明顯增加，但這些特殊狀況在其他激烈活動或運動中不見得會構成安全性要素。因此我們需要以下列問卷來了解你的體能狀態。<b>在未能解決這些身體狀況前就從事需要憋氣的潛水活動時，可能對你的健康造成危害，會危及你的健康以及與你一起從事此運動的所有人之安危。</b><br><br>
+        下列醫療問卷的用意是為了讓你在從事潛水訓練前找出需由醫師檢查的身體問題。<b>問卷提問中勾選「是」時，不見得會導致資格不符</b>，反而能找出可能影響潛水安全，且必須在從事自由潛水活動前尋求專業醫師諮詢已存在的健康問題。醫師必須在表格下方簽名表示並未發現任何不適合自由潛水的身體狀況；若有，請在「是」的欄位中打勾。<br><br>
+        <b>健康項目（請依照你過去與現在的醫療紀錄逐項誠實核對）：</b><br>
+        1. 神經方面病史：有癲癇、腦部手術、大腦血管動脈瘤、復發性昏厥或暈眩、嚴重偏頭痛等病史<br>
+        2. 心血管方面病史：有心臟病、高血壓、中風、心臟手術、心律不整等病史<br>
+        3. 肺部方面病史：有自發性氣胸、因受傷導致肺部萎縮、肺囊腫或肺氣囊腫、肺組織嚴重損傷等病史、或任何干擾呼吸能力的肺部問題<br>
+        4. 耳朵方面病史：有耳膜永久性穿孔、鼓膜破裂、永久性鼓膜管、單耳或雙耳聽力嚴重受損或重大耳朵手術等病史<br>
+        5. 鼻竇方面病史：鼻竇或鼻腔腫瘤、息肉或囊腫、重大鼻竇手術或持續性鼻竇感染等病史<br>
+        6. 氣喘方面病史：氣喘或氣喘發作史（含任何由運動引起的氣喘、焦慮、倦怠感，或需要藥物治療或需要吸入器來控制氣喘的狀況）<br>
+        7. 糖尿病史：特別是第一型糖尿病（自體免疫問題導致須依賴胰島素注射）或第二型糖尿病（後天胰島素阻抗與不足）。或有血糖不穩定反應、相關腎臟疾病、眼疾、心臟病或血管疾病史<br>
+        8. 懷孕：懷孕中或計畫懷孕<br>
+        9. 自由潛水/水肺潛水狀態：潛水事故史、潛水夫病（減壓症）、內耳氣壓傷減壓症<br>
+        10. 用藥史：任何需要定期服用的處方，或非處方藥物的治療<br>
+        11. 一般疾病問題：上列未提及，但可能影響水中環境安全之身體問題（如咳嗽、鼻塞等身體不適），或因身體、情緒壓力下可能影響判斷的情形<br><br>
+        我已誠實及正確填寫上列表格，也瞭解身體狀況與潛水安全之間的關聯性，並在此簽名確認。
+        <br><br>
+        <hr style="border:none;border-top:1px solid var(--border);opacity:0.5;margin:4px 0 14px;">
+        <b>第二部份　報名取消與退費政策</b><br><br>
+        因自由潛水課程採小班制精緻教學，且教學排程、教練比與場地預約皆需提前 1 至 2 個月規劃，報名完成繳費（或支付訂金）後即視為同意本條款。相關退費與改期規範如下：<br><br>
+        <b>一、個人因素取消退費標準：</b><br>
+        1. 開課日前第 45 日（含）以前提出取消者：退還已繳費用總額 90%（扣除 10% 行政手續費）。<br>
+        2. 開課日前第 30 日至第 44 日提出取消者：退還已繳費用總額 70%。<br>
+        3. 開課日前第 15 日至第 29 日提出取消者：退還已繳費用總額 50%。<br>
+        4. 開課日前 14 日內提出取消、當日未到或中途退出者：因排程已定且無法重新招生，恕不接受退費。<br>
+        ※ 註：若報名時係支付「訂金／定金」，開課前 30 日內取消者，訂金恕不予退還。<br><br>
+        <b>二、彈性轉讓與改期機制：</b><br>
+        1. 免費名額轉讓：開課 7 日以前，若您無法參加，可自行將名額轉讓給親友（須補填健康聲明與投保資料），不收取任何手續費。<br>
+        2. 開課 30 日前申請改期：可免費申請改期一次（需於原報名日起一年內使用完畢）。<br>
+        3. 開課 14 至 29 日內申請改期：因已影響排班，須酌收原課程費用 20% 之改期行政費用。<br>
+        4. 開課 13 日內申請改期：視同取消，依第一條退費標準辦理（或僅允許自行找人頂替名額）。<br><br>
+        <b>三、天候與不可抗力因素（僅提供延期服務）：</b><br>
+        1. 開課前通知取消：若因颱風警報、浪況不佳等不可抗力因素，經教練團專業評估不宜下水並由我們主動通知取消，學員得免費延期或保留資格一年（恕不辦理退費）。<br>
+        2. 課程進行中中斷：若課程已開起，於進行期間突遇颱風警報、天候或海象劇烈變化等不可抗力因素導致無法繼續下水，未完成之水域課程將採保留未完成項目與資格一年，學員可於一年內配合開課檔期預約補課（恕不按比例退還未完成之課程費用）。
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="medicalConfirm" required>
+        <span>我已詳細閱讀並理解以上健康聲明書全文與報名取消退費政策，確認我目前的身體狀況<b>「皆為健康、以上 11 項健康項目皆為『否』」</b>，並同意本次報名適用上述退費與改期規範。若我對其中任一健康項目的答案其實是「是」，我了解不應直接透過本頁面完成線上報名，應改為主動聯繫工作室／教練，由專業人員評估或提出醫師證明後才能參與課程。<span class="req">*</span></span>
+      </div>
+    </div>
+    <button type="submit" class="submit" id="submitBtn">送出報名</button>
+    <div class="msg" id="formMsg"></div>
+  </form>
+</div>
+<div class="overlay" id="paymentOverlay">
+  <div class="modal">
+    <h2>✓ 報名資料已送出</h2>
+    <p class="small">請在 24 小時內完成付款，付款完成後點擊下方按鈕繼續。</p>
+    <div class="pay-amount">
+      應付金額
+      <b id="payAmount">NT$ 0</b>
+    </div>
+    <div class="bank-box">
+      銀行：<b>第一銀行（007）</b><br>
+      分行：<b>南投分行</b><br>
+      戶名：<b>紀閔中</b><br>
+      帳號：<b>43168059049</b>
+    </div>
+    <div class="bank-box">
+      <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">或使用 LINE Pay 直接轉帳給我：</div>
+      ① 加 LINE 好友：<b>victoorooo</b><br>
+      ② 進入聊天室，點左下角「＋」<br>
+      ③ 選擇「轉帳」，輸入應付金額<br>
+      ④ 選擇用 LINE Pay 付款送出
+    </div>
+    <button type="button" class="modal-btn line" id="paymentNextBtn">轉帳完成，下一步</button>
+    <button type="button" class="modal-btn close" id="closePaymentBtn">關閉</button>
+  </div>
+</div>
+<div class="overlay" id="notifyOverlay">
+  <div class="modal">
+    <h2>通知我們付款完成</h2>
+    <p class="small">請通知我們您已完成付款，我們會盡快為您確認名額。</p>
+    <a class="modal-btn line" id="lineBtn" href="#" target="_blank" rel="noopener" style="display:none;">我已完成付款，通知我們</a>
+    <div id="desktopNotifyBox" style="display:none;">
+      <div class="bank-box" style="text-align:left;">
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:10px;">
+          偵測到您正在使用電腦瀏覽器，LINE 無法直接跳轉開啟對話（僅手機版 LINE App 支援），請依下方步驟通知我們：
+        </div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:6px;">① 複製以下通知內容：</div>
+        <textarea id="lineMessageText" readonly style="width:100%;min-height:100px;background:var(--bg-field);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+        <button type="button" class="modal-btn line" id="copyLineMsgBtn" style="margin-top:8px;padding:9px;font-size:13px;">複製通知內容</button>
+        <div style="color:var(--text-dim);font-size:12px;margin:14px 0 6px;">② 加入官方帳號好友，貼上剛剛複製的內容傳送給我們：</div>
+        <a class="modal-btn line" id="lineAddFriendBtn" href="#" target="_blank" rel="noopener" style="padding:9px;font-size:13px;">開啟官方帳號加好友頁面 →</a>
+      </div>
+    </div>
+    <button type="button" class="modal-btn close" id="closeModalBtn">關閉</button>
+  </div>
+</div>
+<script>
+  // ============== 設定區：老闆／夥伴請依實際狀況修改以下設定 ==============
+  const CONFIG = {
+    // Apps Script 部署後取得的「網路應用程式網址」，貼在這裡（結尾通常是 /exec）
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxRRk5956x2Z3dlNnlB2GqRJE830s2_VCc6HL2eJfmJmnGZoez_u9h9RI16Wt-Gq_UB/exec',
+    // One Day 自由潛水工作室 LINE 官方帳號 ID（已依目前後台資料代填，如有變更請自行修改）
+    LINE_OA_ID: '@833nezny',
+    // ⚠️ 2026-07-15 新增：電腦版「開啟官方帳號加好友頁面」按鈕用的連結（跟原本行事曆頁「預約」按鈕同一組）
+    LINE_ADD_FRIEND_URL: 'https://lin.ee/BbKIko1',
+    // ⚠️ 2026-07-15 新增：API 授權 Token，必須跟 Code.gs 裡的 SECRET_TOKEN 完全一致，
+    // 否則後端會把每一筆報名都擋下來（回傳 Unauthorized Access，資料不會寫入試算表）。
+    // 如果之後要更換，記得同一時間去 Code.gs 把 SECRET_TOKEN 也改成一樣的新值。
+    API_TOKEN: 'ef54ad6496f73c13f9411049fb88154a6ed3ebbf526f3bfa2f61330331fd3e1b'
+  };
+  // =====================================================================
+  const form = document.getElementById('signupForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const formMsg = document.getElementById('formMsg');
+  const paymentOverlay = document.getElementById('paymentOverlay');
+  const notifyOverlay = document.getElementById('notifyOverlay');
+  const paymentNextBtn = document.getElementById('paymentNextBtn');
+  const closePaymentBtn = document.getElementById('closePaymentBtn');
+  const lineBtn = document.getElementById('lineBtn');
+  const desktopNotifyBox = document.getElementById('desktopNotifyBox');
+  const lineAddFriendBtn = document.getElementById('lineAddFriendBtn');
+  const lineMessageText = document.getElementById('lineMessageText');
+  const copyLineMsgBtn = document.getElementById('copyLineMsgBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const payAmountEl = document.getElementById('payAmount');
+  // 送出成功後暫存這筆報名資料，等使用者點「轉帳完成，下一步」時才用來組 LINE 連結／通知文字
+  let lastSubmitData = null;
+  // 電腦版「開啟官方帳號加好友頁面」按鈕的連結網址，只需設定一次
+  lineAddFriendBtn.href = CONFIG.LINE_ADD_FRIEND_URL;
+  function showMsg(text, type){
+    formMsg.textContent = text;
+    formMsg.className = 'msg ' + type;
+  }
+  function formatCurrency(amount){
+    const n = Number(amount) || 0;
+    return 'NT$ ' + n.toLocaleString('zh-TW');
+  }
 
-        // 2026-07-16 新增：官方帳號 ID（跟報名頁 signup.html 用的是同一組），
-        // 用來組出「點擊後自動帶入詢問文字」的 LINE 深連結。
-        const LINE_OA_ID = '@833nezny';
+  // ============================================================
+  // 2026-07-16 新增：欄位格式檢查（防止「聯絡人電話填中文」「姓名填數字」這類手滑錯誤）。
+  // 規則：
+  //   - 真實姓名：不可包含數字
+  //   - 緊急聯絡人姓名：只能是中英文字（不可含數字或任何符號）
+  //   - 緊急聯絡人電話：只能是數字（8～10 碼）
+  //   - 匯款後五碼：只能是數字，剛好 5 碼
+  // 不合格的欄位會標紅框、在欄位下方顯示提示文字，並且送出時自動捲動到「第一個」錯誤欄位。
+  // ============================================================
+  const FIELD_RULES = [
+    {
+      id: 'name',
+      check: function (v) { return v.trim().length > 0 && !/[0-9]/.test(v); },
+      msg: '姓名不可包含數字，請確認是否打錯。'
+    },
+    {
+      id: 'ecName',
+      check: function (v) { return /^[一-龥A-Za-z\s]+$/.test(v.trim()); },
+      msg: '聯絡人姓名只能填寫中文或英文字，不可包含數字或符號。'
+    },
+    {
+      id: 'ecPhone',
+      check: function (v) { return /^[0-9]{8,10}$/.test(v.trim()); },
+      msg: '聯絡人電話請填寫 8～10 碼數字，不可包含中文或符號。'
+    },
+    {
+      id: 'last5',
+      check: function (v) { return /^[0-9]{5}$/.test(v.trim()); },
+      msg: '匯款後五碼請填寫 5 碼數字。'
+    }
+  ];
 
-        // 判斷是否為手機瀏覽器：LINE 的「跳轉並帶入訊息」深連結（oaMessage）官方文件僅支援
-        // 手機版 LINE App（iOS/Android），電腦版 LINE 完全不支援、點了不會有反應，
-        // 所以電腦瀏覽器還是導去原本固定的 BOOKING_LINE_URL（跟 signup.html 的做法一致）。
-        function isMobileDevice_() {
-            return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  function toggleFieldError_(el, hasError, msg){
+    const errEl = document.getElementById(el.id + 'Error');
+    if (hasError) {
+      el.classList.add('field-invalid');
+      if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
+    } else {
+      el.classList.remove('field-invalid');
+      if (errEl) { errEl.classList.remove('show'); }
+    }
+  }
+
+  // 檢查所有規則欄位，回傳「第一個」不合格的欄位 DOM 元素（全部合格則回傳 null）
+  function validateExtraFields_(){
+    let firstInvalidEl = null;
+    FIELD_RULES.forEach(function (rule) {
+      const el = document.getElementById(rule.id);
+      const valid = rule.check(el.value);
+      toggleFieldError_(el, !valid, rule.msg);
+      if (!valid && !firstInvalidEl) firstInvalidEl = el;
+    });
+    return firstInvalidEl;
+  }
+
+  // 使用者打字時即時清掉紅框提示，不用等到再次按送出才知道已經改對了
+  FIELD_RULES.forEach(function (rule) {
+    const el = document.getElementById(rule.id);
+    el.addEventListener('input', function () {
+      if (rule.check(el.value)) {
+        toggleFieldError_(el, false, '');
+      }
+    });
+  });
+  // ============================================================
+
+  // 2026-07-16 新增：課程選「線上課程」時，不需要選實體上課地點，把地點欄位藏起來、
+  // 順便取消 required，避免逼客人選一個跟線上課程無關的地點。切回其他課程時再恢復。
+  const courseSelect = document.getElementById('course');
+  const locationField = document.getElementById('locationField');
+  const locationSelect = document.getElementById('location');
+  function updateLocationRequirement_(){
+    if (courseSelect.value === '線上課程') {
+      locationField.style.display = 'none';
+      locationSelect.required = false;
+      locationSelect.value = '';
+    } else {
+      locationField.style.display = '';
+      locationSelect.required = true;
+    }
+  }
+  // 2026-07-16 新增：訓練課程／導潛支援「連續報名好幾天、但每天時段不一定相同」。
+  // 選這兩種課程時會多出「報名天數」選單，選 2 天以上會動態長出「第 2 天日期／時段」...
+  // 等欄位，讓客人針對每一天分別選日期跟時段（跟 AIDA2/3/4 假設每天同一時段的邏輯不同，
+  // 那個是後端自動處理，不需要前端額外欄位）。
+  const MULTI_DAY_CUSTOM_COURSES = ['訓練課程', '導潛'];
+  const customDaysField = document.getElementById('customDaysField');
+  const customDaysCountSelect = document.getElementById('customDaysCount');
+  const extraCustomDaysContainer = document.getElementById('extraCustomDaysContainer');
+
+  function renderExtraCustomDays_(){
+    const n = parseInt(customDaysCountSelect.value, 10) || 1;
+    extraCustomDaysContainer.innerHTML = '';
+    for (let day = 2; day <= n; day++) {
+      const row = document.createElement('div');
+      row.className = 'row2';
+      row.innerHTML =
+        '<div class="field">' +
+          '<label>第 ' + day + ' 天 日期<span class="req">*</span></label>' +
+          '<input type="date" class="extraDayDate" data-day="' + day + '" required>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>第 ' + day + ' 天 時段<span class="req">*</span></label>' +
+          '<select class="extraDayPeriod" data-day="' + day + '" required>' +
+            '<option value="" disabled selected>請選擇時段</option>' +
+            '<option value="上午">上午</option>' +
+            '<option value="下午">下午</option>' +
+          '</select>' +
+        '</div>';
+      extraCustomDaysContainer.appendChild(row);
+    }
+  }
+
+  function updateCustomDaysVisibility_(){
+    if (MULTI_DAY_CUSTOM_COURSES.indexOf(courseSelect.value) !== -1) {
+      customDaysField.style.display = '';
+    } else {
+      customDaysField.style.display = 'none';
+      customDaysCountSelect.value = '1';
+      extraCustomDaysContainer.innerHTML = '';
+    }
+  }
+
+  customDaysCountSelect.addEventListener('change', renderExtraCustomDays_);
+  courseSelect.addEventListener('change', function(){
+    updateLocationRequirement_();
+    updateCustomDaysVisibility_();
+  });
+  updateLocationRequirement_();
+  updateCustomDaysVisibility_();
+
+  // 2026-07-21 新增：潛立方／北區深水池是室內水池場地，時段是固定的場次時間表（不是籠統的
+  // 上午/下午），所以選到這兩個地點時，「報名時段」下拉選單要換成老闆提供的固定場次清單；
+  // 選其他地點（或線上課程）時維持原本的「上午/下午/不限時段」三選項。
+  const NORMAL_PERIOD_OPTIONS = ['上午', '下午', '不限時段（線上課程）'];
+  // 潛立方：每場次 1.5 小時固定輪替（日間 6 場＋晚間 2 場）。
+  const QIANLIFANG_PERIOD_OPTIONS = [
+    '09:00–10:30', '10:30–12:00', '12:00–13:30', '13:30–15:00', '15:00–16:30', '16:30–18:00', '18:00–19:30', '19:30–21:00'
+  ];
+  // 北區深水池：每場次 2 小時固定場次（上午/下午×2/晚上）。
+  const BEIQU_PERIOD_OPTIONS = [
+    '上午場 10:00–12:00', '下午場 14:00–16:00', '下午場 16:30–18:30', '晚上場 19:00–21:00'
+  ];
+  // 2026-07-21 新增：AIDA1（海豚體驗課）／AIDA2／AIDA3／AIDA4 這幾個課程本來就是整天上課
+  // （不是選上午或下午其中一段），老闆確認這幾個課程一律視為「全天」，不用讓客人選時段，
+  // 系統直接自動帶入「全天」，並把「報名時段」欄位整個隱藏起來（也不會擋表單送出）。
+  const FULL_DAY_COURSES = [
+    'AIDA1 海豚體驗課（半天）',
+    'AIDA2 證照（三天）',
+    'AIDA3 證照（四天）',
+    'AIDA4 證照（四天）'
+  ];
+  function isFullDayCourse_(){
+    return FULL_DAY_COURSES.indexOf(courseSelect.value) !== -1;
+  }
+  const periodSelect = document.getElementById('period');
+  const periodField = document.getElementById('periodField');
+  function getPeriodOptionsForCurrentSelection_(){
+    if (courseSelect.value === '線上課程') return NORMAL_PERIOD_OPTIONS;
+    if (locationSelect.value === '潛立方') return QIANLIFANG_PERIOD_OPTIONS;
+    if (locationSelect.value === '北區深水池') return BEIQU_PERIOD_OPTIONS;
+    return NORMAL_PERIOD_OPTIONS;
+  }
+  function renderPeriodOptions_(){
+    // 證照／體驗課程一律全天：隱藏欄位、自動帶入「全天」、取消必填（隱藏欄位本來就不會擋送出，
+    // 但把 required 拿掉可以避免萬一之後樣式改動、欄位又變回可見時造成誤判）。
+    if (isFullDayCourse_()) {
+      periodSelect.innerHTML = '';
+      const fullDayOpt = document.createElement('option');
+      fullDayOpt.value = '全天';
+      fullDayOpt.textContent = '全天';
+      fullDayOpt.selected = true;
+      periodSelect.appendChild(fullDayOpt);
+      periodSelect.value = '全天';
+      periodSelect.required = false;
+      if (periodField) periodField.style.display = 'none';
+      return;
+    }
+    if (periodField) periodField.style.display = '';
+    periodSelect.required = true;
+    const options = getPeriodOptionsForCurrentSelection_();
+    const previousValue = periodSelect.value;
+    periodSelect.innerHTML = '';
+    const placeholderOpt = document.createElement('option');
+    placeholderOpt.value = '';
+    placeholderOpt.disabled = true;
+    placeholderOpt.textContent = '請選擇時段';
+    periodSelect.appendChild(placeholderOpt);
+    options.forEach(function (label) {
+      const opt = document.createElement('option');
+      opt.value = label;
+      opt.textContent = label;
+      periodSelect.appendChild(opt);
+    });
+    // 如果切換前選的時段字串在新選單裡還存在，就保留原本選擇；否則重設回「請選擇時段」
+    if (options.indexOf(previousValue) !== -1) {
+      periodSelect.value = previousValue;
+    } else {
+      placeholderOpt.selected = true;
+    }
+  }
+  locationSelect.addEventListener('change', renderPeriodOptions_);
+  courseSelect.addEventListener('change', renderPeriodOptions_);
+  renderPeriodOptions_();
+
+  // 2026-07-16 新增：每次送出報名表單時產生一組獨立的「報名編號」，
+  // 送出報名跟之後「轉帳完成」這兩次請求都會帶著同一組編號，讓後端可以對應回同一筆資料
+  // （不用依賴讀取後端回應內容，因為目前送出報名用的 no-cors 模式讀不到後端真正回傳了什麼）。
+  function generateRegId_(){
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'reg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  // ⚠️ 2026-07-15 新增：LINE 的「跳轉傳訊息」連結（oaMessage）官方文件明講只支援手機版 LINE App
+  // （iOS / Android），電腦版 LINE 完全不支援，點了不會有反應。所以把訊息文字（buildLineMessage_）
+  // 跟組合網址（buildLineUrl）拆開，手機版繼續用網址一鍵跳轉，電腦版改顯示文字讓客人自己複製貼上。
+  function buildLineMessage_(data){
+    return '報名確認\n姓名：' + data.name +
+      '\n課程：' + data.course +
+      '\n日期／時段：' + data.courseDate + ' ' + data.period +
+      '\n人數：' + data.headcount +
+      '\n應付金額：' + formatCurrency(data.amount) +
+      '\n轉帳後五碼：' + data.last5;
+  }
+  function buildLineUrl(data){
+    return 'https://line.me/R/oaMessage/' + CONFIG.LINE_OA_ID + '/?' + encodeURIComponent(buildLineMessage_(data));
+  }
+  // 簡單判斷是不是手機瀏覽器，用來決定顯示「一鍵跳轉 LINE」按鈕，還是「複製通知內容」備援方案
+  function isMobileDevice_(){
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  }
+  // 複製文字到剪貼簿，成功/失敗都會在按鈕上顯示提示文字，2 秒後恢復原本文字
+  function copyText_(text, btn, originalLabel){
+    function done(ok){
+      btn.textContent = ok ? '已複製！' : '複製失敗，請手動選取文字複製';
+      setTimeout(function(){ btn.textContent = originalLabel; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ done(false); });
+    } else {
+      // 舊版瀏覽器沒有 Clipboard API 時的備援做法
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      document.body.removeChild(ta);
+      done(ok);
+    }
+  }
+  copyLineMsgBtn.addEventListener('click', function(){
+    copyText_(lineMessageText.value, copyLineMsgBtn, '複製通知內容');
+  });
+  // 拆成兩個彈跳視窗：第一個顯示付款資訊，點「轉帳完成，下一步」才關掉第一個、開第二個通知視窗
+  paymentNextBtn.addEventListener('click', function(){
+    paymentOverlay.classList.remove('show');
+    if (!lastSubmitData) { return; }
+
+    // 2026-07-16 新增：客人按下「轉帳完成」才是真正扣行事曆名額的時機（而不是一開始送出表單
+    // 就扣），所以這裡要再送一次請求給後端，帶上 action: 'confirmPayment' 跟同一組報名編號。
+    // 這個請求採「送出去就不管結果」的方式：就算這次網路不穩、送失敗了，也不擋客人繼續完成
+    // 通知流程，同步失敗的狀況會反映在老闆試算表的「行事曆同步狀態」欄位讓老闆自己追蹤。
+    const confirmPayload = {};
+    for (const key in lastSubmitData) { confirmPayload[key] = lastSubmitData[key]; }
+    confirmPayload.action = 'confirmPayment';
+    fetch(CONFIG.SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(confirmPayload)
+    }).catch(function(){ /* 靜默失敗，理由同上 */ });
+
+    if (isMobileDevice_()) {
+      lineBtn.style.display = '';
+      lineBtn.href = buildLineUrl(lastSubmitData);
+      desktopNotifyBox.style.display = 'none';
+    } else {
+      lineBtn.style.display = 'none';
+      lineMessageText.value = buildLineMessage_(lastSubmitData);
+      desktopNotifyBox.style.display = 'block';
+    }
+    notifyOverlay.classList.add('show');
+  });
+  closePaymentBtn.addEventListener('click', function(){
+    paymentOverlay.classList.remove('show');
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    formMsg.className = 'msg';
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    // 2026-07-16 新增：逐欄格式檢查，不合格就標紅框＋跳出提示＋自動捲動到第一個錯誤欄位
+    const firstInvalidEl = validateExtraFields_();
+    if (firstInvalidEl) {
+      showMsg('請確認畫面上標紅框的欄位，格式填寫有誤。', 'error');
+      firstInvalidEl.focus();
+      firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const headcount = parseInt(document.getElementById('headcount').value, 10);
+    if (!headcount || headcount < 1) {
+      showMsg('報名人數請填寫 1 以上的整數。', 'error');
+      return;
+    }
+    if (CONFIG.SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
+      showMsg('系統尚未設定完成（尚未貼上 Apps Script 網址），請聯絡工作室協助處理。', 'error');
+      return;
+    }
+    // 2026-07-16 新增：訓練課程／導潛如果選了「報名天數」大於 1，組出 customDays 陣列
+    // （第 1 天用原本的課程日期／報名時段，第 2 天以後用動態長出的欄位）一起送給後端。
+    let customDaysPayload = null;
+    if (MULTI_DAY_CUSTOM_COURSES.indexOf(document.getElementById('course').value) !== -1) {
+      const dayCount = parseInt(customDaysCountSelect.value, 10) || 1;
+      customDaysPayload = [{
+        date: document.getElementById('courseDate').value,
+        period: document.getElementById('period').value
+      }];
+      if (dayCount > 1) {
+        const extraDateEls = document.querySelectorAll('.extraDayDate');
+        const extraPeriodEls = document.querySelectorAll('.extraDayPeriod');
+        for (let i = 0; i < extraDateEls.length; i++) {
+          customDaysPayload.push({
+            date: extraDateEls[i].value,
+            period: extraPeriodEls[i].value
+          });
         }
+      }
+    }
 
-        // 組出點擊「可預約」或某個時段後要跳轉的網址。
-        // 手機瀏覽器：跳到 LINE 官方帳號聊天室，並自動帶入一句預約詢問文字，客人只要按送出。
-        //   （如果客人還沒加這個官方帳號為好友，LINE 會先跳出「加好友」的提示，
-        //   不是真的「自動加好友」——這是 LINE 平台本身的行為，不是我們能控制的部分。）
-        // 電腦瀏覽器：LINE 深連結不支援，維持原本固定連結，行為不變。
-        function buildBookingUrl_(dateLabel, detailText) {
-            if (!isMobileDevice_()) {
-                return BOOKING_LINE_URL;
-            }
-            const message = detailText
-                ? `我想預約 ${dateLabel} 的 ${detailText} 行程`
-                : `我想預約 ${dateLabel} 行程`;
-            return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
-        }
-
-        // 2026-07-16 新增：「課程與行程時間說明」面板（初階課程/進階高階/海豚體驗班/導潛/訓練/團練）
-        // 點擊後直接連到 LINE 官方帳號並自動帶入該項目的諮詢文字，客人只要按送出即可。
-        // 邏輯跟 buildBookingUrl_ 一樣：手機瀏覽器才帶得動自動訊息，電腦瀏覽器維持原本固定連結。
-        function buildInquiryUrl_(topicLabel) {
-            if (!isMobileDevice_()) {
-                return BOOKING_LINE_URL;
-            }
-            const message = `我想諮詢「${topicLabel}」的相關資訊`;
-            return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
-        }
-
-        // 2026-07-16 新增：跟 buildInquiryUrl_ 幾乎一樣，差別是這個直接吃「完整訊息文字」，
-        // 不會再包一層「我想諮詢「XX」的相關資訊」的樣板——給像「客服諮詢注記」這種
-        // 不屬於單一課程項目、需要自訂完整句子的連結使用。
-        function buildCustomInquiryUrl_(message) {
-            if (!isMobileDevice_()) {
-                return BOOKING_LINE_URL;
-            }
-            return 'https://line.me/R/oaMessage/' + LINE_OA_ID + '/?' + encodeURIComponent(message);
-        }
-
-        // 頁面載入時，把每個課程說明卡片（以及客服諮詢注記）的連結網址換成上面組好的諮詢連結
-        // （這幾個元素是寫死在 HTML 裡的，不像日曆格子是用 JS 動態產生的，所以要另外初始化一次）。
-        // 有 data-message 的元素（例如客服諮詢注記）用自訂完整句子；只有 data-topic 的（六張課程卡片）維持原本樣板。
-        function initInfoPanelLinks_() {
-            document.querySelectorAll('.consult-link').forEach(function (el) {
-                if (el.dataset.message) {
-                    el.href = buildCustomInquiryUrl_(el.dataset.message);
-                } else {
-                    el.href = buildInquiryUrl_(el.dataset.topic || '');
-                }
-            });
-        }
-        initInfoPanelLinks_();
-
-        let currentDate = new Date(2026, 6, 1);
-        let sheetData = [];
-        async function fetchGoogleSheet() {
-            const sheetMonthName = `${currentDate.getMonth() + 1}月`;
-            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetMonthName)}`;
-
-            try {
-                const response = await fetch(url);
-                const text = await response.text();
-                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-                const data = JSON.parse(jsonString);
-
-                const rows = data.table.rows;
-                const headers = data.table.cols.map(col => col ? col.label || '' : '');
-
-                let lastValidDate = null;
-                const locIndex = headers.findIndex(h => h && (h.toLowerCase().includes('loc') || h.includes('地點')));
-                let availableIndex = headers.findIndex(h => h && (h.includes('Available') || h.includes('剩餘')));
-                if (availableIndex === -1) availableIndex = headers.length - 1;
-                sheetData = rows.map(row => {
-                    const cells = row.c;
-                    if (!cells) return null;
-
-                    let dateStr = null;
-                    if (cells[0]) {
-                        dateStr = cells[0].f ? cells[0].f : parseGoogleDate(cells[0].v);
-                    }
-
-                    if (dateStr) {
-                        lastValidDate = dateStr;
-                    } else if (cells[1] && (cells[1].f || cells[1].v !== null)) {
-                        dateStr = lastValidDate;
-                    }
-                    let timeStr = '';
-                    if (cells[1]) {
-                        timeStr = cells[1].f ? cells[1].f : parseGoogleTime(cells[1].v);
-                    }
-                    if (!dateStr) return null;
-
-                    let specificLocation = '';
-                    if (locIndex !== -1 && cells[locIndex] && cells[locIndex].v) {
-                        specificLocation = String(cells[locIndex].v).trim();
-                    }
-                    // 智慧判定是否為潛旅
-                    const isTrip = specificLocation.includes('旅遊') || specificLocation.includes('潛旅') || specificLocation.includes('出國');
-                    let project = '';
-                    const scanStartIndex = locIndex !== -1 ? locIndex + 2 : 5;
-                    for (let i = scanStartIndex; i < availableIndex; i++) {
-                        if (cells[i] && cells[i].v !== null && cells[i].v !== '') {
-                            let cellText = cells[i].f ? cells[i].f : String(cells[i].v);
-                            if (!isNaN(cellText) || cellText.trim().toLowerCase() === 'v') {
-                                project = headers[i] || '潛水行程';
-                            } else {
-                                project = cellText;
-                            }
-                            break;
-                        }
-                    }
-                    if (!project && isTrip) {
-                        project = '潛水旅遊';
-                    }
-                    if (!project && !timeStr) return null;
-                    return {
-                        date: dateStr,
-                        time: timeStr || '全天',
-                        period: cells[2] ? (cells[2].f || cells[2].v || '') : '',
-                        capacity: cells[3] ? (cells[3].v || 0) : 0,
-                        project: project || '潛水活動',
-                        location: specificLocation,
-                        available: cells[availableIndex] ? (cells[availableIndex].v || 0) : 0
-                    };
-                }).filter(item => item && item.date);
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('daysGrid').style.display = 'grid';
-                renderCalendar();
-            } catch (error) {
-                console.error("讀取試算表失敗:", error);
-                document.getElementById('loading').innerText = `暫時無法載入 ${sheetMonthName} 的預約資料，請確認您的試算表中是否有建立名為「${sheetMonthName}」的分頁喔！`;
-            }
-        }
-        // 動態解析地點與特殊行程
-        function getProjectTitleHTML(projectName, rowLocation) {
-            if (!projectName) return '潛水行程';
-
-            const locationToUse = (rowLocation || '').trim();
-            // 1. 如果「地點」欄位裡包含旅遊、潛旅、出國等關鍵字
-            if (locationToUse.includes('旅遊') || locationToUse.includes('潛旅') || locationToUse.includes('出國')) {
-                // 直接將您在試算表地點寫的文字（例如：綠島潛旅）整串動態放進標籤中！
-                let cleanedName = projectName.replace('潛水旅遊', '').replace('潛旅', '').replace('旅遊', '').replace('出國', '').trim();
-                return `<span class="loc-tag special-trip">✈️ ${locationToUse}</span>${cleanedName || '行程'}`;
-            }
-            // 2. 正常行程解析
-            if (locationToUse.includes('台中')) {
-                const cleanedName = projectName.replace('台中', '').trim();
-                return `<span class="loc-tag taichung">台中</span>${cleanedName || '行程'}`;
-            }
-
-            if (locationToUse.includes('恆春')) {
-                const cleanedName = projectName.replace('恆春', '').trim();
-                return `<span class="loc-tag hengchun">恆春</span>${cleanedName || '行程'}`;
-            }
-
-            if (locationToUse.includes('小琉球') || locationToUse.includes('琉球')) {
-                const cleanedName = projectName.replace('小琉球', '').replace('琉球', '').trim();
-                return `<span class="loc-tag liuqiu">琉球</span>${cleanedName || '行程'}`;
-            }
-
-            if (locationToUse.includes('潛立方')) {
-                const cleanedName = projectName.replace('潛立方', '').trim();
-                return `<span class="loc-tag qianlifang">潛立方</span>${cleanedName || '行程'}`;
-            }
-
-            if (locationToUse.includes('北區5米池') || locationToUse.includes('北區5m池') || locationToUse.includes('5米池')) {
-                const cleanedName = projectName.replace('北區5米池', '').replace('北區5m池', '').replace('5米池', '').trim();
-                return `<span class="loc-tag beiqu5m">北區5米池</span>${cleanedName || '行程'}`;
-            }
-
-            // 降級防呆：若地點沒寫，但專案名稱含有特定地點
-            const projectToSearch = projectName.trim();
-            if (projectToSearch.includes('台中')) return `<span class="loc-tag taichung">台中</span>${projectToSearch.replace('台中', '')}`;
-            if (projectToSearch.includes('恆春')) return `<span class="loc-tag hengchun">恆春</span>${projectToSearch.replace('恆春', '')}`;
-            if (projectToSearch.includes('琉球')) return `<span class="loc-tag liuqiu">琉球</span>${projectToSearch.replace('小琉球', '').replace('琉球', '')}`;
-            if (projectToSearch.includes('潛立方')) return `<span class="loc-tag qianlifang">潛立方</span>${projectToSearch.replace('潛立方', '')}`;
-            if (projectToSearch.includes('北區5米池') || projectToSearch.includes('5米池')) return `<span class="loc-tag beiqu5m">北區5米池</span>${projectToSearch.replace('北區5米池', '').replace('5米池', '')}`;
-
-            return projectName;
-        }
-        function createDayCell(year, month, day, isOtherMonth, isToday = false) {
-            const cell = document.createElement('div');
-            cell.className = 'day-cell';
-            if (isOtherMonth) cell.classList.add('other-month');
-            if (isToday) cell.classList.add('today');
-            cell.innerHTML = `<div class="day-number">${String(day).padStart(2, '0')}</div>`;
-            const slotsContainer = document.createElement('div');
-            slotsContainer.className = 'slots-container';
-            // 2026-07-16 新增：這個日期儲存格對應的「幾月幾號」文字（例如「7/20」），
-            // 用來組進點擊後自動帶入的 LINE 詢問訊息裡。
-            const dateLabel = `${month + 1}/${day}`;
-            const matchedSlots = sheetData.filter(item => {
-                const itemDateObj = new Date(item.date);
-                return itemDateObj.getFullYear() === year &&
-                       itemDateObj.getMonth() === month &&
-                       itemDateObj.getDate() === day;
-            });
-            if (matchedSlots.length > 0) {
-                matchedSlots.forEach(slot => {
-                    const badge = document.createElement('a');
-                    badge.className = 'slot-badge';
-
-                    const projectHTML = getProjectTitleHTML(slot.project, slot.location);
-                    const isFull = slot.available <= 0;
-
-                    let displayTime = '';
-                    if (slot.time && slot.time !== '全天') {
-                        displayTime = slot.time.includes(':') ? slot.time : slot.time + '點';
-                    } else {
-                        displayTime = '全天';
-                    }
-
-                    const timeLabel = slot.period ? `${slot.period} ${displayTime}` : displayTime;
-
-                    // 2026-07-16 新增：組出這個時段的純文字描述（不含 HTML 標籤），
-                    // 用來塞進自動帶入的預約詢問訊息裡，例如「小琉球 導潛（上午 9點）」。
-                    const plainProjectText = `${slot.location ? slot.location + ' ' : ''}${slot.project || ''}（${timeLabel}）`.trim();
-                    badge.href = buildBookingUrl_(dateLabel, plainProjectText);
-                    badge.target = '_blank';
-
-                    if (isFull) {
-                        badge.classList.add('full');
-                        badge.innerHTML = `<span class="slot-title">${projectHTML}</span><span class="slot-meta"><span>${timeLabel}</span><span>額滿</span></span>`;
-                    } else {
-                        badge.innerHTML = `<span class="slot-title">${projectHTML} (餘 ${slot.available})</span><span class="slot-meta"><span>${timeLabel}</span><span style="color:var(--primary-color)">預約</span></span>`;
-                    }
-                    slotsContainer.appendChild(badge);
-                });
-            } else if (!isOtherMonth) {
-                const emptyBadge = document.createElement('a');
-                emptyBadge.className = 'slot-badge empty-clickable';
-                emptyBadge.href = buildBookingUrl_(dateLabel, null);
-                emptyBadge.target = '_blank';
-                emptyBadge.innerText = '可預約';
-                slotsContainer.appendChild(emptyBadge);
-            }
-            cell.appendChild(slotsContainer);
-            return cell;
-        }
-        function parseGoogleDate(dateStr) {
-            if (!dateStr) return null;
-            if (typeof dateStr === 'string' && dateStr.startsWith('Date')) {
-                const parts = dateStr.match(/\d+/g);
-                if (parts) {
-                    return `${parts[0]}/${String(parseInt(parts[1]) + 1).padStart(2, '0')}/${parts[2].padStart(2, '0')}`;
-                }
-            }
-            return dateStr;
-        }
-        function parseGoogleTime(timeVal) {
-            if (timeVal === null || timeVal === undefined) return '';
-            const timeStr = String(timeVal);
-            if (timeStr.startsWith('Date')) {
-                const parts = timeStr.match(/\d+/g);
-                if (parts && parts.length >= 4) {
-                    return parts[3];
-                }
-            }
-            return timeStr;
-        }
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            document.getElementById('monthTitle').innerText = `${year}年 ${month + 1}月`;
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const lastDay = new Date(year, month + 1, 0).getDate();
-            const prevLastDay = new Date(year, month, 0).getDate();
-            const grid = document.getElementById('daysGrid');
-            grid.innerHTML = '';
-            for (let i = firstDayIndex; i > 0; i--) {
-                grid.appendChild(createDayCell(year, month - 1, prevLastDay - i + 1, true));
-            }
-            const today = new Date();
-            for (let i = 1; i <= lastDay; i++) {
-                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
-                grid.appendChild(createDayCell(year, month, i, false, isToday));
-            }
-            const totalCells = firstDayIndex + lastDay;
-            const remaining = 42 - totalCells;
-            for (let i = 1; i <= remaining; i++) {
-                grid.appendChild(createDayCell(year, month + 1, i, true));
-            }
-        }
-        function changeMonth(direction) {
-            currentDate.setMonth(currentDate.getMonth() + direction);
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('loading').innerText = "正在載入教練行程與預約名額...";
-            document.getElementById('daysGrid').style.display = 'none';
-            fetchGoogleSheet();
-        }
-        window.onload = fetchGoogleSheet;
-    </script>
+    const data = {
+      token: CONFIG.API_TOKEN,
+      regId: generateRegId_(),
+      name: document.getElementById('name').value.trim(),
+      gender: document.getElementById('gender').value,
+      birthday: document.getElementById('birthday').value,
+      course: document.getElementById('course').value,
+      courseDate: document.getElementById('courseDate').value,
+      location: document.getElementById('location').value.trim(),
+      period: document.getElementById('period').value,
+      customDays: customDaysPayload,
+      headcount: headcount,
+      amount: document.getElementById('amount').value,
+      last5: document.getElementById('last5').value.trim(),
+      emergencyContact: document.getElementById('ecName').value.trim() + '（' + document.getElementById('ecRelation').value.trim() + '）',
+      emergencyPhone: document.getElementById('ecPhone').value.trim(),
+      medicalConfirmed: document.getElementById('medicalConfirm').checked
+    };
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送出中...';
+    fetch(CONFIG.SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data)
+    }).then(function(){
+      lastSubmitData = data;
+      payAmountEl.textContent = formatCurrency(data.amount);
+      paymentOverlay.classList.add('show');
+      form.reset();
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出報名';
+      formMsg.className = 'msg';
+    }).catch(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出報名';
+      showMsg('送出失敗，請檢查網路連線後再試一次；若持續發生，麻煩截圖畫面聯絡工作室。', 'error');
+    });
+  });
+  closeModalBtn.addEventListener('click', function(){
+    notifyOverlay.classList.remove('show');
+  });
+</script>
 </body>
 </html>
