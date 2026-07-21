@@ -196,11 +196,11 @@
           <option value="恆春">恆春</option>
           <option value="小琉球">小琉球</option>
           <option value="潛立方">潛立方</option>
-          <option value="北區5米池">北區5米池</option>
+          <option value="北區深水池">北區深水池</option>
         </select>
       </div>
     </div>
-    <div class="field">
+    <div class="field" id="periodField">
       <label>報名時段<span class="req">*</span></label>
       <select id="period" required>
         <option value="" disabled selected>請選擇時段</option>
@@ -533,6 +533,80 @@
   });
   updateLocationRequirement_();
   updateCustomDaysVisibility_();
+
+  // 2026-07-21 新增：潛立方／北區深水池是室內水池場地，時段是固定的場次時間表（不是籠統的
+  // 上午/下午），所以選到這兩個地點時，「報名時段」下拉選單要換成老闆提供的固定場次清單；
+  // 選其他地點（或線上課程）時維持原本的「上午/下午/不限時段」三選項。
+  const NORMAL_PERIOD_OPTIONS = ['上午', '下午', '不限時段（線上課程）'];
+  // 潛立方：每場次 1.5 小時固定輪替（日間 6 場＋晚間 2 場）。
+  const QIANLIFANG_PERIOD_OPTIONS = [
+    '09:00–10:30', '10:30–12:00', '12:00–13:30', '13:30–15:00', '15:00–16:30', '16:30–18:00', '18:00–19:30', '19:30–21:00'
+  ];
+  // 北區深水池：每場次 2 小時固定場次（上午/下午×2/晚上）。
+  const BEIQU_PERIOD_OPTIONS = [
+    '上午場 10:00–12:00', '下午場 14:00–16:00', '下午場 16:30–18:30', '晚上場 19:00–21:00'
+  ];
+  // 2026-07-21 新增：AIDA1（海豚體驗課）／AIDA2／AIDA3／AIDA4 這幾個課程本來就是整天上課
+  // （不是選上午或下午其中一段），老闆確認這幾個課程一律視為「全天」，不用讓客人選時段，
+  // 系統直接自動帶入「全天」，並把「報名時段」欄位整個隱藏起來（也不會擋表單送出）。
+  const FULL_DAY_COURSES = [
+    'AIDA1 海豚體驗課（半天）',
+    'AIDA2 證照（三天）',
+    'AIDA3 證照（四天）',
+    'AIDA4 證照（四天）'
+  ];
+  function isFullDayCourse_(){
+    return FULL_DAY_COURSES.indexOf(courseSelect.value) !== -1;
+  }
+  const periodSelect = document.getElementById('period');
+  const periodField = document.getElementById('periodField');
+  function getPeriodOptionsForCurrentSelection_(){
+    if (courseSelect.value === '線上課程') return NORMAL_PERIOD_OPTIONS;
+    if (locationSelect.value === '潛立方') return QIANLIFANG_PERIOD_OPTIONS;
+    if (locationSelect.value === '北區深水池') return BEIQU_PERIOD_OPTIONS;
+    return NORMAL_PERIOD_OPTIONS;
+  }
+  function renderPeriodOptions_(){
+    // 證照／體驗課程一律全天：隱藏欄位、自動帶入「全天」、取消必填（隱藏欄位本來就不會擋送出，
+    // 但把 required 拿掉可以避免萬一之後樣式改動、欄位又變回可見時造成誤判）。
+    if (isFullDayCourse_()) {
+      periodSelect.innerHTML = '';
+      const fullDayOpt = document.createElement('option');
+      fullDayOpt.value = '全天';
+      fullDayOpt.textContent = '全天';
+      fullDayOpt.selected = true;
+      periodSelect.appendChild(fullDayOpt);
+      periodSelect.value = '全天';
+      periodSelect.required = false;
+      if (periodField) periodField.style.display = 'none';
+      return;
+    }
+    if (periodField) periodField.style.display = '';
+    periodSelect.required = true;
+    const options = getPeriodOptionsForCurrentSelection_();
+    const previousValue = periodSelect.value;
+    periodSelect.innerHTML = '';
+    const placeholderOpt = document.createElement('option');
+    placeholderOpt.value = '';
+    placeholderOpt.disabled = true;
+    placeholderOpt.textContent = '請選擇時段';
+    periodSelect.appendChild(placeholderOpt);
+    options.forEach(function (label) {
+      const opt = document.createElement('option');
+      opt.value = label;
+      opt.textContent = label;
+      periodSelect.appendChild(opt);
+    });
+    // 如果切換前選的時段字串在新選單裡還存在，就保留原本選擇；否則重設回「請選擇時段」
+    if (options.indexOf(previousValue) !== -1) {
+      periodSelect.value = previousValue;
+    } else {
+      placeholderOpt.selected = true;
+    }
+  }
+  locationSelect.addEventListener('change', renderPeriodOptions_);
+  courseSelect.addEventListener('change', renderPeriodOptions_);
+  renderPeriodOptions_();
 
   // 2026-07-16 新增：每次送出報名表單時產生一組獨立的「報名編號」，
   // 送出報名跟之後「轉帳完成」這兩次請求都會帶著同一組編號，讓後端可以對應回同一筆資料
